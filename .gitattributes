@@ -1,0 +1,7 @@
+# Arquivos do Windows vão com quebra de linha do Windows (CRLF), exatamente como estão aqui
+*.bat -text
+*.ps1 -text
+# Scripts do Mac sempre com LF
+*.sh text eol=lf
+*.command text eol=lf
+*.py text eol=lf
