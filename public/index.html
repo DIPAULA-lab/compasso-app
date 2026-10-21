@@ -1476,7 +1476,7 @@ function vHabitos(){
 /* ---- Tarefas ---- */
 function vTarefas(){
   const all=S.tasks;const open=all.filter(x=>!x.done);
-  let h=vhead(`${open.length} abertas · ${all.filter(x=>x.done&&x.doneAt&&x.doneAt.slice(0,10)>=dk(addD(new Date(),-6))).length} concluídas nos últimos 7 dias`,'Tarefas',`<button class="btn primary" data-act="task-new">${ic('plus')}Nova tarefa</button>`);
+  let h=vhead(`${open.length} abertas · ${all.filter(x=>x.done&&x.doneAt&&x.doneAt.slice(0,10)>=dk(addD(new Date(),-6))).length} concluídas nos últimos 7 dias`,'Tarefas',`<button class="btn" data-act="category-new">${ic('plus')}Nova categoria</button><button class="btn primary" data-act="task-new">${ic('plus')}Nova tarefa</button>`);
   const base=UI.taskShow==='open'?open:all.filter(x=>x.done);
   const cats=catList(),knownCats=new Set(cats.map(c=>c.id)),hasUncat=base.some(x=>!knownCats.has(x.cat));
   h+=`<div class="filters"><button class="fchip" aria-pressed="${UI.taskCat==='all'}" data-act="task-cat" data-c="all">Todas <span class="n">${base.length}</span></button>`+
@@ -2139,6 +2139,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').hidden
 document.addEventListener('change',e=>{const el=e.target;if(el.dataset.change==='ex-sel'){UI.exSel=el.value;quietRender()}
   const rb=el.closest&&el.closest('[data-rec]');if(rb)syncRec(rb.dataset.rec);if(['f-freq','f-period','f-mode','f-goal'].includes(el.id))syncForms();if(el.id==='f-due'||el.id==='w-date')syncAllRec()});
 document.addEventListener('submit',async e=>{
+  if(e.target.dataset.form==='category'){e.preventDefault();saveCategory();return;}
   e.preventDefault();const f=e.target;const k=f.dataset.form;const id=f.dataset.id||uid();const now=new Date().toISOString();
   if(k==='quick-task'||k==='quick-task2'){
     const p=k==='quick-task'?'qt':'qt2';const title=fv(p+'-title');if(!title)return;const cat=fv(p+'-cat');UI.lastCat=cat;

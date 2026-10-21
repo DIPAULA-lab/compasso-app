@@ -70,3 +70,30 @@ document.addEventListener('keydown',e=>{
  const controls=[...$('#sheet').querySelectorAll('button,input,textarea,select,a[href]')].filter(x=>!x.disabled&&x.getClientRects().length),first=controls[0],last=controls.at(-1);
  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}
 });
+
+/* Approved category creation. Reuse the existing model, palette and form components. */
+const COMPASSO_CATEGORY_COLORS=['Azul','Laranja','Verde-água','Amarelo','Rosa','Verde','Violeta','Vermelho'];
+function categoryModal(){
+ const used=catList().map(category=>+category.c);
+ const color=COMPASSO_CATEGORY_COLORS.findIndex((_,i)=>!used.includes(i+1))+1||1;
+ openModal(`<h2>Nova categoria</h2><form class="form" data-form="category">
+  <div class="field"><label for="f-category-name">Nome da categoria</label><input type="text" id="f-category-name" required maxlength="100" autocomplete="off"></div>
+  <div class="field"><label for="f-category-color">Cor</label><select id="f-category-color">${COMPASSO_CATEGORY_COLORS.map((name,i)=>`<option value="${i+1}" ${color===i+1?'selected':''}>${name}</option>`).join('')}</select></div>
+  ${foot('',null)}</form>`);
+}
+function saveCategory(){
+ const input=$('#f-category-name'),name=input.value.trim();
+ const existing=catList();
+ const duplicate=existing.some(category=>category.name.trim().normalize('NFC').toLocaleLowerCase('pt-BR')===name.normalize('NFC').toLocaleLowerCase('pt-BR'));
+ input.setCustomValidity(!name?'Informe o nome da categoria.':duplicate?'Já existe uma categoria com esse nome.':'');
+ if(!input.reportValidity())return false;
+ const category={id:'c'+uid(),name,c:+fv('f-category-color')};
+ // Preserve the implicit Geral category as well as all explicit categories.
+ putMeta('categories',{items:[...existing,category]});
+ UI.taskCat=category.id;UI.lastCat=category.id;UI.taskShow='open';
+ closeModal();toast('Categoria criada.');return true;
+}
+A['category-new']=()=>categoryModal();
+document.addEventListener('input',event=>{
+ if(event.target.id==='f-category-name')event.target.setCustomValidity('');
+});
