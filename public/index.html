@@ -185,6 +185,17 @@ main{padding-block:18px 64px;padding-inline:clamp(16px,3.5vw,44px);min-width:0;m
 .group-h:first-child{margin-top:0}
 .group-h .mono{font-family:inherit}
 .group-h.late{color:var(--bad)}
+.task-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px;align-items:start}
+.task-list-card{min-width:0;padding:16px;border-radius:var(--r-tile);background:var(--surface-2)}
+.task-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.task-list-title{display:flex;align-items:center;gap:8px;min-width:0;font-size:16px;font-weight:600;overflow-wrap:anywhere}
+.task-list-title i{width:9px;height:9px;border-radius:50%;background:var(--task-cat,var(--ink-3));flex:none}
+.task-list-title .mono{color:var(--ink-3);font-size:12px;font-weight:500}
+.task-list-card .group-h{margin-top:14px}
+.task-list-head+.group-h{margin-top:0}
+.task-list-card .row{gap:9px}
+.task-list-card .row .meta{gap:5px 8px}
+.task-list-card .task-empty{padding:12px 8px;border-radius:12px;background:var(--surface);font-size:13px}
 .quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .quick input[type=text]{flex:1 1 200px}
 .quick .btn.primary{padding:8px 12px}
@@ -686,8 +697,120 @@ input[type=text],input[type=password],input[type=number],input[type=date],input[
 .kpis-cor .kpi .v small{color:var(--ink-3)}
 .kpis-cor .k-blue .meter i{background:var(--tre)}
 @media (max-width:900px){[data-area="hoje"] .card-h h2{font-size:26px}.hg-n{font-size:20px}.hl{font-size:17px}}
+
+/* ===== Movimento (3 durações, 3 curvas) =====
+   rápido 120ms: resposta ao toque · base 240ms: mudança de estado · lento 420ms: espaço e telas */
+:root{--m-fast:120ms;--m-base:240ms;--m-slow:420ms;--ez:cubic-bezier(.2,.8,.2,1);--ez-in:cubic-bezier(.4,0,1,1);--ez-sheet:cubic-bezier(.32,.72,0,1)}
+@media (prefers-reduced-motion:reduce){:root{--m-fast:1ms;--m-base:1ms;--m-slow:1ms}}
+/* resposta ao toque */
+.iconbtn,.fchip,.seg button,.nav button,.rings-w .it,.km-tile,.dcell,.hl-ck,.check{transition:transform var(--m-fast) var(--ez),background-color var(--m-base) var(--ez),border-color var(--m-base) var(--ez),color var(--m-base) var(--ez),box-shadow var(--m-base) var(--ez),filter var(--m-fast)}
+.iconbtn:active,.fchip:active,.seg button:active,.nav button:active{transform:scale(.94)}
+.km-tile:active,.rings-w .it:active{transform:scale(.98)}
+.hl-ck:active{transform:scale(.8)}
+/* check da tarefa: o traço se desenha; ao concluir, o título é riscado antes de a linha sair */
+.check svg{opacity:1}
+.check svg *{stroke-dasharray:30;stroke-dashoffset:30;transition:stroke-dashoffset var(--m-base) var(--ez) 60ms}
+.check[aria-checked="true"] svg *,.just-done .check svg *{stroke-dashoffset:0}
+.just-done .check{background:var(--accent);border-color:var(--accent)}
+.row .t,.gp .t{background:linear-gradient(currentColor,currentColor) no-repeat 0 56%/0 1.5px;transition:background-size var(--m-slow) var(--ez),color var(--m-base),opacity var(--m-fast)}
+.just-done .t{background-size:100% 1.5px;color:var(--ink-3)}
+/* barras e anéis acompanham o valor */
+.gl-bar i,.meter i{transition:width var(--m-slow) var(--ez)}
+/* marcador da navegação (computador): desliza entre os itens */
+.nav{position:relative}
+.nav-ind{position:absolute;left:0;top:4px;bottom:4px;width:0;border-radius:20px;background:var(--ink);pointer-events:none;z-index:0}
+.nav button{position:relative;z-index:1}
+.nav.has-ind button[aria-current="page"]{background:none}
+@media (max-width:900px){.nav-ind{display:none}}
+/* troca de tela */
+::view-transition-old(root),::view-transition-new(root){animation-duration:.2s}
+::view-transition-old(main){animation:m-out-f .16s var(--ez-in) both}
+::view-transition-new(main){animation:m-in-f .38s var(--ez) both}
+:root[data-dir="back"]::view-transition-old(main){animation-name:m-out-b}
+:root[data-dir="back"]::view-transition-new(main){animation-name:m-in-b}
+::view-transition-group(nav-ind){animation-duration:.42s;animation-timing-function:cubic-bezier(.3,1.25,.5,1)}
+@keyframes m-out-f{to{opacity:0;transform:translateX(-14px)}}
+@keyframes m-in-f{from{opacity:0;transform:translateX(22px)}}
+@keyframes m-out-b{to{opacity:0;transform:translateX(14px)}}
+@keyframes m-in-b{from{opacity:0;transform:translateX(-22px)}}
+/* formulários: saem do jeito que entraram */
+.modal.closing{animation:m-fade-out .21s var(--ez-in) forwards;pointer-events:none}
+.modal.closing .sheet{animation:m-sheet-out .21s var(--ez-in) forwards}
+@keyframes m-fade-out{to{opacity:0}}
+@keyframes m-sheet-out{to{opacity:0;transform:translateY(14px) scale(.98)}}
+@media (max-width:900px){
+  .sheet{animation:m-sheet-up .44s var(--ez-sheet)}
+  .modal.closing .sheet{animation:m-sheet-down .26s var(--ez-in) forwards}
+  @keyframes m-sheet-up{from{transform:translateY(100%)}}
+  @keyframes m-sheet-down{to{transform:translateY(100%)}}
+}
+@media (prefers-reduced-motion:reduce){.sheet,.modal,.modal.closing,.modal.closing .sheet{animation:none}}
+/* aviso com ação */
+.toast{display:flex;align-items:center;gap:14px}
+.toast-act{flex:none;margin:-5px -8px -5px 0;padding:5px 12px;border:0;border-radius:99px;background:var(--ink);color:var(--bg);font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.toast-act:active{transform:scale(.95)}
+@media (max-width:900px){.toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
+/* toque: área de pelo menos 44px nos círculos de marcar */
+.check{position:relative}
+@media (pointer:coarse){
+  .hl-ck::after{inset:-16px -16px -16px -12px}
+  .check::after{content:"";position:absolute;inset:-10px}
+}
+/* Início no celular: o que fazer hoje vem antes dos indicadores */
+@media (max-width:900px){
+  #main[data-area="hoje"]{display:flex;flex-direction:column}
+  #main[data-area="hoje"]>*{order:4;margin-top:0;margin-bottom:14px}
+  #main[data-area="hoje"]>.banner{order:0}
+  #main[data-area="hoje"]>.vh{order:1;margin-bottom:18px}
+  #main[data-area="hoje"]>.home-mid{order:2}
+  #main[data-area="hoje"]>.bento{order:3}
+}
+
+/* ===== Refinamento visual ===== */
+/* estados vazios: ícone, título, explicação e próximo passo */
+.empty{display:flex;flex-direction:column;align-items:center;gap:5px;padding:30px 20px;border-radius:18px;background:var(--surface-2);color:var(--ink-3);text-align:center;font-size:13.5px;line-height:1.45}
+.empty br{display:none}
+.empty .e-ic{display:grid;place-items:center;width:42px;height:42px;margin-bottom:6px;border-radius:50%;background:var(--surface);color:var(--ink);box-shadow:var(--card-shadow)}
+.empty .e-ic svg{width:19px;height:19px}
+.empty .e-t{font-size:15.5px;font-weight:600;color:var(--ink)}
+.empty .e-s{max-width:44ch}
+.empty .btn{margin-top:10px}
+/* Tarefas: Abertas/Concluídas no fim da linha de filtros; categorias vazias recolhidas */
+[data-area="tarefas"] .filters{align-items:center;margin-bottom:18px}
+[data-area="tarefas"] .filters .seg{margin-left:auto}
+.task-board .task-list-card{background:var(--surface);box-shadow:var(--card-shadow)}
+.task-empty-cats{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px;font-size:13px;color:var(--ink-3)}
+.task-empty-cats>span:first-child{margin-right:4px}
+.task-empty-cats .fchip{padding:5px 11px;font-size:13px;background:none}
+.task-empty-cats .fchip svg{width:13px;height:13px;color:var(--ink-3)}
+.task-empty-cats button.fchip:hover{background:var(--surface)}
+/* Treinos: mostrar mais semanas */
+.more-btn{display:flex;margin:14px auto 2px;gap:8px}
+.more-btn .muted{font-weight:500}
+/* Resumo: cor da área nos números */
+.kpis-cor .k-hab .v{color:var(--hab)} .kpis-cor .k-tar .v{color:var(--tar)} .kpis-cor .k-tre .v{color:var(--tre)}
+/* Agenda: legenda */
+.cal-legend{display:flex;flex-wrap:wrap;gap:6px 18px;padding:12px 6px 2px;font-size:12px;color:var(--ink-3)}
+.cal-legend span{display:inline-flex;align-items:center;gap:7px}
+.cal-legend i{display:inline-block;flex:none}
+.lg-hbar{width:22px;height:3px;border-radius:2px;background:var(--fill)}
+.lg-hbar b{display:block;width:60%;height:100%;border-radius:2px;background:var(--hab)}
+.lg-plan{width:18px;height:10px;border-radius:4px;border:1px dashed var(--ink-3)}
+.hbar{cursor:default}
+/* formulário de tarefa: opções avançadas recolhidas */
+.more-opts{border-top:1px solid var(--line);padding-top:12px}
+.more-opts summary{display:flex;align-items:baseline;gap:8px;cursor:pointer;list-style:none;font-size:14px;font-weight:600;color:var(--ink)}
+.more-opts summary::-webkit-details-marker{display:none}
+.more-opts summary::before{content:"";width:7px;height:7px;flex:none;align-self:center;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform var(--m-base) var(--ez)}
+.more-opts[open] summary::before{transform:rotate(45deg) translate(-2px,-2px)}
+.more-opts summary span{font-size:12.5px;font-weight:500;color:var(--ink-3)}
+.more-opts[open] summary span{display:none}
+.more-body{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+@media (prefers-reduced-motion:no-preference){.more-opts[open] .more-body{animation:m-reveal var(--m-slow) var(--ez)}}
+@keyframes m-reveal{from{opacity:0;transform:translateY(-6px)}}
 </style>
 
+<link rel="stylesheet" href="compasso-motion.css">
 <div class="app">
   <nav class="side" aria-label="Seções">
     <div class="brand">
@@ -704,7 +827,7 @@ input[type=text],input[type=password],input[type=number],input[type=date],input[
 </div>
 <div id="modal" class="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <div id="tip" class="tip" hidden></div>
-<div id="toast" class="toast" hidden></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
 <!-- Adaptador local: substitui o runtime do claude.ai (dados + conectores) -->
 <script src="config.js"></script>
@@ -936,11 +1059,12 @@ function dueTag(x){
   return `<span class="due due-${dueLvl(x.due)}">${tn(d<0?`atrasada · ${dueD(x.due)}`:d===0?'hoje':d===1?'amanhã':dueD(x.due))}</span>`;
 }
 const PRIO={1:'Alta',2:'Média',3:'Baixa'};
-function taskRow(x){
-  return `<div class="row ${x.done?'done':''}">
+function taskRow(x,showCategory=true){
+  const meta=`${showCategory?catChip(x.cat):''}${dueTag(x)}${x.prio&&x.prio!=2?`<span class="prio p${x.prio}">${x.prio==1?'▲ Alta':'▽ Baixa'}</span>`:''}${hasRec(x.rec)?`<span class="tag rec">↻ ${esc(recLabel(x.rec))}</span>`:''}${goalOf(x.goalId)?`<span class="tag goal">◎ ${esc(goalOf(x.goalId).title)}</span>`:''}${x.notes?'<span class="muted small">· nota</span>':''}`;
+  return `<div class="row ${x.done?'done':''}" data-key="t:${x.id}">
     <button class="check" role="checkbox" aria-checked="${!!x.done}" aria-label="Concluir ${esc(x.title)}" data-act="task-toggle" data-id="${x.id}">${CHECK}</button>
     <div class="main"><button class="t" data-act="task-edit" data-id="${x.id}">${esc(x.title)}</button>
-      <div class="meta">${catChip(x.cat)}${dueTag(x)}${x.prio&&x.prio!=2?`<span class="prio p${x.prio}">${x.prio==1?'▲ Alta':'▽ Baixa'}</span>`:''}${hasRec(x.rec)?`<span class="tag rec">↻ ${esc(recLabel(x.rec))}</span>`:''}${goalOf(x.goalId)?`<span class="tag goal">◎ ${esc(goalOf(x.goalId).title)}</span>`:''}${x.notes?'<span class="muted small">· nota</span>':''}</div>
+      ${meta?`<div class="meta">${meta}</div>`:''}
     </div></div>`;
 }
 function toggleTask(id){
@@ -953,7 +1077,14 @@ function toggleTask(id){
   }
   if(!done&&x.spawnedId){const sp=S.tasks.find(t=>t.id===x.spawnedId);if(sp&&!sp.done)del('tasks',sp.id);upd.spawnedId=null}
   put('tasks',id,upd);
-  const fb=goalFeedback(x.goalId,gb);if(fb)msgs.unshift(fb);if(msgs.length)toast(msgs.join(' · '));
+  const fb=goalFeedback(x.goalId,gb);if(fb)msgs.unshift(fb);
+  if(done)toast(['Tarefa concluída',...msgs].join(' · '),{label:'Desfazer',fn:()=>{const y=S.tasks.find(t=>t.id===id);if(y&&y.done)toggleTask(id)}});
+  else if(msgs.length)toast(msgs.join(' · '));
+}
+// exclusão com "Desfazer": devolve o documento como estava
+function delUndo(col,id,msg){
+  const old=S[col].find(x=>x.id===id);del(col,id);
+  if(old)toast(msg,{label:'Desfazer',fn:()=>{if(!S[col].some(x=>x.id===id))put(col,id,strip(old))}});
 }
 
 /* ============ workouts ============ */
@@ -1002,6 +1133,7 @@ function normGcal(ev){
   return out;
 }
 function watchCal(slot,start,end){
+  if(window.COMPASSO_CONFIG&&window.COMPASSO_CONFIG.googleEnabled===false)return;
   if(!mcp)return;const key=dk(start)+'_'+dk(end);const g=G[slot];if(g.key===key)return;
   if(g.unsub)g.unsub();
   g.key=key;g.events=[];g.err=null;g.loading=true;g.retried=false;
@@ -1027,6 +1159,7 @@ function gcalFor(key){
   return out.sort((a,b)=>(a.allDay?'':a.time).localeCompare(b.allDay?'':b.time));
 }
 function calStatus(){
+  if(window.COMPASSO_CONFIG&&window.COMPASSO_CONFIG.googleEnabled===false)return {cls:'',t:'Agenda do Compasso'};
   if(!mcp)return {cls:'',t:'Google Calendar indisponível aqui'};
   const e=G.month.err||G.soon.err;
   if(e&&e.code==='not_configured')return {cls:'',t:'Google Calendar não configurado'};
@@ -1061,14 +1194,15 @@ const VIEWS=[['hoje','Início','today'],['habitos','Hábitos','habits'],['tarefa
 let rq=0;
 function schedule(){if(rq)return;rq=requestAnimationFrame(()=>{rq=0;render()})}
 function render(){
-  $('#nav').innerHTML=VIEWS.map(([k,l,i])=>`<button data-act="nav" data-v="${k}" ${UI.view===k?'aria-current="page"':''}>${ic(i)}<span>${l}</span></button>`).join('');
+  const anim=!calm();
+  morph($('#nav'),VIEWS.map(([k,l,i])=>`<button data-act="nav" data-v="${k}" ${UI.view===k?'aria-current="page"':''}>${ic(i)}<span>${l}</span></button>`).join(''),false);
   const cs=calStatus();
   const LC=window.CompassoLocal,srv=!!(LC&&LC.server),srvOff=srv&&!LC.online();
   const dbT=srvOff?'Servidor do Compasso fora do ar':dbState==='ok'?(srv?'Dados salvos neste computador':'Dados sincronizados'):dbState==='off'?'Sem salvamento aqui':'Conectando dados…';
   const gT=cs.cls==='err'?'Google Calendar: erro':cs.cls==='ok'?'Google Calendar':'Google Calendar…';
   const sT='Strava'+(SV.off?' não configurado':SV.err?': erro':SV.busy?' · sincronizando':'');
   $('#conn').innerHTML=`<span title="${dbT}"><i class="dot ${srvOff||dbState==='off'?'err':dbState==='ok'?'ok':'wait'}"></i><em>${dbT}</em></span>
-   <span title="${esc(cs.t)}"><i class="dot ${cs.cls}"></i><em>${gT}</em></span>
+   ${window.COMPASSO_CONFIG&&window.COMPASSO_CONFIG.googleEnabled===false?'':`<span title="${esc(cs.t)}"><i class="dot ${cs.cls}"></i><em>${gT}</em></span>`}
    <span title="${sT}"><i class="dot ${SV.off?'':SV.err?'err':SV.at?'ok':'wait'}"></i><em>${sT}</em></span>`;
   const main=$('#main');main.dataset.area=$('#modal').dataset.area=UI.view;
   // preserve inputs across re-render
@@ -1076,11 +1210,14 @@ function render(){
   const vals={};main.querySelectorAll('input[id],select[id],textarea[id]').forEach(el=>vals[el.id]=el.value);
   let sel=null;if(aid&&act.setSelectionRange){try{sel=[act.selectionStart,act.selectionEnd]}catch{}}
   const fn={hoje:vHoje,habitos:vHabitos,tarefas:vTarefas,calendario:vCal,treinos:vTreinos,stats:vStats}[UI.view]||vHoje;
-  main.innerHTML=(srvOff&&dbState!=='off'?`<div class="banner err"><span><b>Servidor do Compasso fora do ar.</b> Alterações feitas agora não serão salvas. Inicie o servidor; a página se reconecta sozinha.</span></div>`:'')+(dbState==='off'?`<div class="banner err"><b>Modo local.</b> Esta visualização não consegue salvar dados; o que você fizer aqui some ao recarregar.</div>`:'')+fn();
+  morph(main,(srvOff&&dbState!=='off'?`<div class="banner err"><span><b>Servidor do Compasso fora do ar.</b> Alterações feitas agora não serão salvas. Inicie o servidor; a página se reconecta sozinha.</span></div>`:'')+(dbState==='off'?`<div class="banner err"><b>Modo local.</b> Esta visualização não consegue salvar dados; o que você fizer aqui some ao recarregar.</div>`:'')+fn(),anim);
   Object.entries(vals).forEach(([id,v])=>{const el=document.getElementById(id);if(!el||el.dataset.keep==='no')return;if(el.tagName==='SELECT'&&![...el.options].some(o=>o.value===v))return;el.value=v});
   if(aid){const el=document.getElementById(aid);if(el){el.focus();if(sel&&el.setSelectionRange){try{el.setSelectionRange(...sel)}catch{}}}}
-  drawCharts();
+  drawCharts();placeNavInd();
 }
+// estado vazio: ícone, o que falta e o próximo passo
+const emptyBox=(i,t,sub='',act='')=>`<div class="empty">${i?`<span class="e-ic" aria-hidden="true">${ic(i)}</span>`:''}<b class="e-t">${t}</b>${sub?`<span class="e-s">${sub}</span>`:''}${act}</div>`;
+const emptyBtn=(act,label)=>`<button class="btn primary" data-act="${act}">${ic('plus')}${label}</button>`;
 function vhead(eyebrow,title,actions=''){return `<header class="vh"><div class="vh-t"><h1>${title}</h1>${eyebrow?`<span class="vh-dot" aria-hidden="true"></span><p class="vh-sub">${eyebrow}</p>`:''}</div><div class="actions">${actions}</div></header>`}
 // números dentro de textos usam Inter, como no design
 const tn=s=>esc(s).replace(/&#?\w+;|\d+(?:[.,]\d+)*/g,m=>m[0]==='&'?m:`<span class="n">${m}</span>`);
@@ -1099,7 +1236,7 @@ function vHoje(){
   const tDone=S.tasks.filter(x=>x.done&&x.doneAt&&x.doneAt.slice(0,10)===tk).length;
   const tTot=tDone+b.today.length+b.late.length;
   const runsM=S.workouts.filter(w=>w.type==='run'&&w.date>=mStart).length;
-  const ring=(r,p,v)=>{const C=2*Math.PI*r;return `<circle cx="100" cy="100" r="${r}" stroke="var(--${v})" style="opacity:var(--track)"/><circle cx="100" cy="100" r="${r}" stroke="var(--${v})" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-clamp(p,0,1))).toFixed(1)}"/>`};
+  const ring=(r,p,v)=>{const C=2*Math.PI*r;return `<circle cx="100" cy="100" r="${r}" stroke="var(--${v})" style="opacity:var(--track)"/><circle cx="100" cy="100" r="${r}" stroke="var(--${v})" stroke-dasharray="${C.toFixed(1)}" style="stroke-dashoffset:${(C*(1-clamp(p,0,1))).toFixed(1)}"/>`};
   const pH=hs.length?hd/hs.length:0,pT=tTot?tDone/tTot:0,pW=ww.length/weekTarget();
   const rings=`<section class="card rings-w" aria-label="Progresso de hoje">
     <svg viewBox="0 0 200 200" role="img" aria-label="Hábitos ${Math.round(pH*100)}%, tarefas ${Math.round(pT*100)}%, treinos ${Math.round(clamp(pW,0,1)*100)}%"><g fill="none" stroke-width="22" stroke-linecap="round" transform="rotate(-90 100 100)">${ring(89,pH,'hab')}${ring(64,pT,'tar')}${ring(39,pW,'tre')}</g></svg>
@@ -1122,11 +1259,11 @@ function vHoje(){
 function goalsPanel(){
   const gs=[...S.goals].filter(g=>!g.done).sort((a,b)=>(gDeadline(a)||'9').localeCompare(gDeadline(b)||'9'));
   let h=`<section class="card goals-panel"><div class="card-h"><h2>Metas</h2><div class="actions"><button class="btn ghost small" data-act="nav" data-v="habitos">ver todas</button><button class="iconbtn" title="Nova meta" aria-label="Nova meta" data-act="goal-new">${ic('plus')}</button></div></div>`;
-  if(!gs.length)return h+`<div class="empty">Nenhuma meta ativa. Ligue tarefas e hábitos a uma meta e o progresso avança sozinho.<br><button class="btn" data-act="goal-new">${ic('plus')}Nova meta</button></div></section>`;
+  if(!gs.length)return h+emptyBox('habits','Nenhuma meta ativa','Ligue tarefas e hábitos a uma meta e o progresso avança sozinho.',emptyBtn('goal-new','Nova meta'))+`</section>`;
   h+=`<div class="gl">`+gs.map(g=>{
     const p=goalProg(g);const c=catOf(g.cat);const gd=gDeadline(g);const dd=gd?pd(gd):null;
     const prazo=isPer(g)?`${PERN[g.period]} · até ${pad(dd.getDate())}/${pad(dd.getMonth()+1)}`:dd?`prazo ${pad(dd.getDate())}/${pad(dd.getMonth()+1)}/${dd.getFullYear()}`:'sem prazo';
-    return `<div class="gl-row" style="--gc:${cv(c.c)}" title="${esc(prazo)}">
+    return `<div class="gl-row" data-key="g:${g.id}" style="--gc:${cv(c.c)}" title="${esc(prazo)}">
       <span class="gl-dot" aria-hidden="true"></span>
       <div class="gl-tw"><button class="gl-t" data-act="goal-edit" data-id="${g.id}">${tn(g.title)}</button>${goalMeta(g,dd)}</div>
       <span class="gl-c">${esc(c.name)}</span>
@@ -1152,26 +1289,26 @@ function catGroups(items,keyFn){
 function habitsByCat(){
   const tk=today(),mon=monOf(new Date());const hs=activeHabits();
   let h=`<section class="card home-hab"><div class="card-h"><h2>Hábitos</h2><div class="actions"><button class="btn ghost small" data-act="nav" data-v="habitos">histórico</button><button class="btn primary" data-act="habit-new">+ Hábito</button></div></div>`;
-  if(!hs.length)return h+`<div class="empty">Nenhum hábito ainda.<br><button class="btn" data-act="habit-new">${ic('plus')}Criar hábito</button></div></section>`;
+  if(!hs.length)return h+emptyBox('habits','Nenhum hábito ainda','Comece por um hábito pequeno, que caiba no seu dia.',emptyBtn('habit-new','Criar hábito'))+`</section>`;
   const dueIds=new Set(dueToday().map(x=>x.id));
   h+=catGroups(hs,x=>x.cat).map(gr=>{
     const due=gr.items.filter(x=>dueIds.has(x.id));const dn=due.filter(x=>doneOn(x.id,tk)).length;
-    return `<div class="hg" style="--gc:${cv(gr.cat.c)}"><div class="hg-h"><i></i><span class="hg-n">${esc(gr.cat.name)}</span><span class="hg-c">${dn}/${due.length} hoje</span></div>
+    return `<div class="hg" data-key="hg:${gr.cat.id}" style="--gc:${cv(gr.cat.c)}"><div class="hg-h"><i></i><span class="hg-n">${esc(gr.cat.name)}</span><span class="hg-c">${dn}/${due.length} hoje</span></div>
       ${gr.items.map(x=>{const d=doneOn(x.id,tk);const s=streak(x);const off=!dueIds.has(x.id);
         const nx=x.freq==='sched'&&off?nextOcc(x.rec,tk):null;const g=goalOf(x.goalId);
         const sub=x.freq==='weekly'?`${weekCount(x,mon)}/${x.target||1} na semana`:off?(nx?`próximo: ${DOW[(pd(nx).getDay()+6)%7]} ${MES[pd(nx).getMonth()]} ${pd(nx).getDate()}`:'sem próximas datas'):s.n?`${s.n} ${s.unit}`:'';
-        return `<div class="hl"><button class="hl-ck" role="checkbox" aria-checked="${d}" aria-label="${esc(x.name)}" data-act="habit-toggle" data-id="${x.id}" data-k="${tk}"></button><div class="hl-b"><button class="hl-t" data-act="habit-edit" data-id="${x.id}">${tn(x.name)}</button>${sub?`<span class="hl-s">${tn(sub)}</span>`:''}${g?`<span class="hl-g" title="Meta: ${esc(g.title)}">◎</span>`:''}</div></div>`}).join('')}</div>`}).join('');
+        return `<div class="hl" data-key="h:${x.id}"><button class="hl-ck" role="checkbox" aria-checked="${d}" aria-label="${esc(x.name)}" data-act="habit-toggle" data-id="${x.id}" data-k="${tk}"></button><div class="hl-b"><button class="hl-t" data-act="habit-edit" data-id="${x.id}">${tn(x.name)}</button>${sub?`<span class="hl-s">${tn(sub)}</span>`:''}${g?`<span class="hl-g" title="Meta: ${esc(g.title)}">◎</span>`:''}</div></div>`}).join('')}</div>`}).join('');
   return h+`</section>`;
 }
 function tasksByCat(open){
   const t=today();
   let h=`<section class="card home-tar"><div class="card-h"><h2>Tarefas</h2><div class="actions"><button class="btn ghost small" data-act="nav" data-v="tarefas">ver todas</button><button class="btn primary" data-act="task-new">+ Tarefa</button></div></div>`;
-  if(!open.length)return h+`<div class="empty">Nenhuma tarefa aberta.</div></section>`;
+  if(!open.length)return h+emptyBox('check','Tudo em dia','Nenhuma tarefa aberta.',emptyBtn('task-new','Nova tarefa'))+`</section>`;
   const sorter=(a,b)=>(a.due||'9999').localeCompare(b.due||'9999')||(a.prio||2)-(b.prio||2);
   h+=catGroups(open,x=>x.cat).map(gr=>{
     const items=[...gr.items].sort(sorter);const late=items.filter(x=>x.due&&x.due<t).length;
-    return `<div class="cg" style="--gc:${cv(gr.cat.c)}"><div class="cg-h"><i></i>${esc(gr.cat.name)}<span class="mono">${items.length} aberta${items.length>1?'s':''}${late?` · <b style="color:var(--bad);font-weight:500">${late} atrasada${late>1?'s':''}</b>`:''}</span></div>
-      <div class="list">${items.slice(0,5).map(x=>`<div class="row compact"><button class="check" role="checkbox" aria-checked="false" aria-label="Concluir ${esc(x.title)}" data-act="task-toggle" data-id="${x.id}">${CHECK}</button>
+    return `<div class="cg" data-key="cg:${gr.cat.id}" style="--gc:${cv(gr.cat.c)}"><div class="cg-h"><i></i>${esc(gr.cat.name)}<span class="mono">${items.length} aberta${items.length>1?'s':''}${late?` · <b style="color:var(--bad);font-weight:500">${late} atrasada${late>1?'s':''}</b>`:''}</span></div>
+      <div class="list">${items.slice(0,5).map(x=>`<div class="row compact" data-key="t:${x.id}"><button class="check" role="checkbox" aria-checked="false" aria-label="Concluir ${esc(x.title)}" data-act="task-toggle" data-id="${x.id}">${CHECK}</button>
         <div class="main"><button class="t" data-act="task-edit" data-id="${x.id}">${esc(x.title)}</button></div>${goalOf(x.goalId)?`<span class="goalic" title="Meta: ${esc(goalOf(x.goalId).title)}">◎</span>`:''}${hasRec(x.rec)?`<span class="recic" title="${esc(recLabel(x.rec))}">↻</span>`:''}${x.prio==1?'<span class="prio p1" title="Prioridade alta">▲</span>':''}${dueTag(x)}</div>`).join('')}</div>
       ${items.length>5?`<button class="btn ghost small" data-act="task-go" data-c="${gr.cat.id}">+${items.length-5} em ${esc(gr.cat.name)}</button>`:''}</div>`}).join('');
   return h+`</section>`;
@@ -1293,7 +1430,7 @@ function goalPartsHtml(g){
   let h=`<div class="gparts">`;
   if(!it.length)h+=`<div class="muted small">Ligue tarefas ou hábitos a esta meta para o progresso andar sozinho.</div>`;
   h+=it.map(x=>x.kind==='task'
-    ?`<div class="gp ${x.done?'ok':''}"><button class="check" role="checkbox" aria-checked="${x.done}" aria-label="Concluir ${esc(x.title)}" data-act="task-toggle" data-id="${x.id}">${CHECK}</button><button class="t" data-act="task-edit" data-id="${x.id}">${esc(x.title)}</button>${x.w>1?`<span class="src">${x.w}×</span>`:''}</div>`
+    ?`<div class="gp ${x.done?'ok':''}" data-key="t:${x.id}"><button class="check" role="checkbox" aria-checked="${x.done}" aria-label="Concluir ${esc(x.title)}" data-act="task-toggle" data-id="${x.id}">${CHECK}</button><button class="t" data-act="task-edit" data-id="${x.id}">${esc(x.title)}</button>${x.w>1?`<span class="src">${x.w}×</span>`:''}</div>`
     :`<div class="gp"><span class="gp-h" style="--p:${Math.round(x.p*100)}%"></span><button class="t" data-act="habit-edit" data-id="${x.id}">${esc(x.title)}</button><span class="src">${x.dn}/${x.tg}${x.w>1?` · ${x.w}×`:''}</span></div>`).join('');
   return h+`<button class="btn ghost small" data-act="task-new-goal" data-g="${g.id}">${ic('plus')}Tarefa para esta meta</button></div>`;
 }
@@ -1303,7 +1440,7 @@ function vHabitos(){
   // goals
   const gs=[...S.goals].sort((a,b)=>(a.done?1:0)-(b.done?1:0)||(gDeadline(a)||'9').localeCompare(gDeadline(b)||'9'));
   h+=`<div class="card-h"><h2>Metas</h2></div>`;
-  if(!gs.length)h+=`<div class="empty" style="margin-bottom:22px">Sem metas. Ligue tarefas e hábitos a uma meta e o progresso avança sozinho conforme você os conclui, ou use um alvo numérico que você atualiza.<br><button class="btn" data-act="goal-new">${ic('plus')}Nova meta</button></div>`;
+  if(!gs.length)h+=`<div style="margin-bottom:22px">${emptyBox('habits','Sem metas','Ligue tarefas e hábitos a uma meta e o progresso avança sozinho conforme você os conclui, ou use um alvo numérico que você atualiza.',emptyBtn('goal-new','Nova meta'))}</div>`;
   else h+=`<div class="grid3" style="margin-bottom:26px">${gs.map(g=>{
     const p=goalProg(g);const linked=S.habits.filter(x=>x.goalId===g.id&&!x.archived);
     const gd=gDeadline(g);const dl=gd?daysBetween(today(),gd):null;const cur=gCur(g);
@@ -1322,7 +1459,7 @@ function vHabitos(){
   // habits
   const hs=activeHabits();const t=new Date();
   h+=`<section class="card"><div class="card-h"><h2>Hábitos</h2><span class="muted small">Toque nos quadrados para marcar dias anteriores</span></div>`;
-  if(!hs.length)h+=`<div class="empty">Nenhum hábito ativo.<br><button class="btn" data-act="habit-new">${ic('plus')}Criar hábito</button></div>`;
+  if(!hs.length)h+=emptyBox('habits','Nenhum hábito ativo','Hábitos marcados aqui alimentam os mapas do Resumo e o progresso das metas.',emptyBtn('habit-new','Criar hábito'));
   else{
     const days=[...Array(14)].map((_,i)=>addD(t,i-13));
     h+=`<div class="hab-table"><div class="hab" style="border-top:0;padding-bottom:0"><span class="muted small">hábito</span><div class="days">${days.map(d=>`<span class="dh">${DOW[(d.getDay()+6)%7][0]}${d.getDate()}</span>`).join('')}</div><span class="muted small">sequência</span><span class="muted small">30 dias</span></div>`;
@@ -1341,20 +1478,31 @@ function vTarefas(){
   const all=S.tasks;const open=all.filter(x=>!x.done);
   let h=vhead(`${open.length} abertas · ${all.filter(x=>x.done&&x.doneAt&&x.doneAt.slice(0,10)>=dk(addD(new Date(),-6))).length} concluídas nos últimos 7 dias`,'Tarefas',`<button class="btn primary" data-act="task-new">${ic('plus')}Nova tarefa</button>`);
   const base=UI.taskShow==='open'?open:all.filter(x=>x.done);
+  const cats=catList(),knownCats=new Set(cats.map(c=>c.id)),hasUncat=base.some(x=>!knownCats.has(x.cat));
   h+=`<div class="filters"><button class="fchip" aria-pressed="${UI.taskCat==='all'}" data-act="task-cat" data-c="all">Todas <span class="n">${base.length}</span></button>`+
-    catList().map(c=>`<button class="fchip" aria-pressed="${UI.taskCat===c.id}" data-act="task-cat" data-c="${c.id}"><i style="background:${cv(c.c)}"></i>${esc(c.name)} <span class="n">${base.filter(x=>x.cat===c.id).length}</span></button>`).join('')+`</div>`;
-  const list=base.filter(x=>UI.taskCat==='all'||x.cat===UI.taskCat);
-  h+=`<section class="card"><div class="card-h"><div class="seg" role="group" aria-label="Mostrar"><button aria-pressed="${UI.taskShow==='open'}" data-act="task-show" data-s="open">Abertas</button><button aria-pressed="${UI.taskShow==='done'}" data-act="task-show" data-s="done">Concluídas</button></div></div>`;
-  if(UI.taskShow==='open'){
-    const b=taskBuckets(list);
-    const grp=(k,l,cls='')=>b[k].length?`<div class="group-h ${cls}">${l} <span class="mono">${b[k].length}</span></div><div class="list">${b[k].map(taskRow).join('')}</div>`:'';
-    const body=grp('late','Atrasadas','late')+grp('today','Hoje')+grp('week','Próximos 7 dias')+grp('later','Mais adiante')+grp('none','Sem prazo');
-    h+=body||`<div class="empty">Nenhuma tarefa aberta${UI.taskCat!=='all'?' nesta categoria':''}.</div>`;
-  }else{
-    const d=[...list].sort((a,b)=>String(b.doneAt||'').localeCompare(String(a.doneAt||''))).slice(0,80);
-    h+=d.length?`<div class="list">${d.map(taskRow).join('')}</div>`:`<div class="empty">Nenhuma tarefa concluída ainda.</div>`;
+    cats.map(c=>`<button class="fchip" aria-pressed="${UI.taskCat===c.id}" data-act="task-cat" data-c="${c.id}"><i style="background:${cv(c.c)}"></i>${esc(c.name)} <span class="n">${base.filter(x=>x.cat===c.id).length}</span></button>`).join('')+
+    (hasUncat?`<button class="fchip" aria-pressed="${UI.taskCat==='__uncategorized'}" data-act="task-cat" data-c="__uncategorized">Sem categoria <span class="n">${base.filter(x=>!knownCats.has(x.cat)).length}</span></button>`:'')+
+    `<div class="seg" role="group" aria-label="Mostrar"><button aria-pressed="${UI.taskShow==='open'}" data-act="task-show" data-s="open">Abertas</button><button aria-pressed="${UI.taskShow==='done'}" data-act="task-show" data-s="done">Concluídas</button></div></div>`;
+  const list=base.filter(x=>UI.taskCat==='all'||(UI.taskCat==='__uncategorized'?!knownCats.has(x.cat):x.cat===UI.taskCat));
+  const shownDone=UI.taskShow==='done'?[...list].sort((a,b)=>String(b.doneAt||'').localeCompare(String(a.doneAt||''))).slice(0,80):[];
+  const groups=cats.filter(c=>UI.taskCat==='all'||UI.taskCat===c.id).map(c=>({cat:c,items:list.filter(x=>x.cat===c.id)}));
+  const uncat=list.filter(x=>!knownCats.has(x.cat));
+  if(UI.taskCat==='all'||UI.taskCat==='__uncategorized'){
+    if(hasUncat||UI.taskCat==='__uncategorized')groups.push({cat:{id:'__uncategorized',name:'Sem categoria',c:0},items:uncat});
   }
-  return h+`</section>`;
+  const catCard=({cat,items})=>{
+    const isUncat=cat.id==='__uncategorized';
+    const tasks=UI.taskShow==='open'?items:shownDone.filter(x=>isUncat?!knownCats.has(x.cat):x.cat===cat.id);
+    const body=UI.taskShow==='open'?(()=>{const b=taskBuckets(tasks);const grp=(k,l,cls='')=>b[k].length?`<div class="group-h ${cls}" data-key="gh:${k}">${l} <span class="mono">${b[k].length}</span></div><div class="list" data-key="gl:${k}">${b[k].map(x=>taskRow(x,false)).join('')}</div>`:'';return grp('late','Atrasadas','late')+grp('today','Hoje')+grp('week','Próximos 7 dias')+grp('later','Mais adiante')+grp('none','Sem prazo')})():tasks.length?`<div class="list">${tasks.map(x=>taskRow(x,false)).join('')}</div>`:'';
+    return `<article class="task-list-card" data-key="tc:${cat.id}"><div class="task-list-head"><h2 class="task-list-title" style="--task-cat:${cv(cat.c)}"><i></i>${esc(cat.name)} <span class="mono">${items.length}</span></h2>${!isUncat?`<button class="iconbtn" aria-label="Nova tarefa em ${esc(cat.name)}" title="Nova tarefa nesta categoria" data-act="task-new" data-c="${cat.id}">${ic('plus')}</button>`:''}</div>${body||`<div class="empty task-empty">Nenhuma tarefa ${UI.taskShow==='open'?'aberta':'concluída'} nesta categoria.</div>`}</article>`;
+  };
+  const isOpen=UI.taskShow==='open',shownOf=g=>isOpen?g.items.length:shownDone.filter(x=>g.cat.id==='__uncategorized'?!knownCats.has(x.cat):x.cat===g.cat.id).length;
+  // com "Todas", categorias sem tarefas viram uma linha discreta no fim (com atalho para criar)
+  const full=UI.taskCat==='all'?groups.filter(g=>shownOf(g)):groups,vazias=UI.taskCat==='all'?groups.filter(g=>!shownOf(g)&&g.cat.id!=='__uncategorized'):[];
+  if(!full.length)h+=emptyBox('check',isOpen?'Tudo em dia':'Nada concluído ainda',isOpen?`Nenhuma tarefa aberta${UI.taskCat!=='all'?' nesta categoria':''}.`:'As tarefas concluídas aparecem aqui.',isOpen?emptyBtn('task-new','Nova tarefa'):'');
+  else h+=`<div class="task-board">${full.map(catCard).join('')}</div>`;
+  if(full.length&&vazias.length)h+=`<div class="task-empty-cats" data-key="tec"><span>Sem tarefas ${isOpen?'abertas':'concluídas'}</span>${vazias.map(g=>isOpen?`<button class="fchip" data-act="task-new" data-c="${g.cat.id}" title="Nova tarefa em ${esc(g.cat.name)}"><i style="background:${cv(g.cat.c)}"></i>${esc(g.cat.name)}${ic('plus')}</button>`:`<span class="fchip"><i style="background:${cv(g.cat.c)}"></i>${esc(g.cat.name)}</span>`).join('')}</div>`;
+  return h;
 }
 
 /* ---- Calendário ---- */
@@ -1380,9 +1528,9 @@ function vCal(){
     g+=`<button class="cday ${out?'out':''} ${k===today()?'today':''} ${k===UI.calSel?'sel':''}" data-act="cal-sel" data-k="${k}" aria-label="${fmtD(k)}">
       <span class="dn">${d.getDate()}</span>${items.slice(0,3).join('')}${items.length>3?`<span class="more">+${items.length-3}</span>`:''}
       <span class="dots">${dots.map(c=>`<i style="--cc:${c}"></i>`).join('')}</span>
-      ${p!=null?`<span class="hbar" title="Hábitos ${Math.round(p*100)}%"><i style="width:${p*100}%"></i></span>`:''}</button>`;
+      ${p!=null?`<span class="hbar" data-tip="Hábitos feitos no dia: ${Math.round(p*100)}%"><i style="width:${p*100}%"></i></span>`:''}</button>`;
   }
-  g+=`</div></div>`;
+  g+=`</div><div class="cal-legend" aria-hidden="true"><span><i class="lg-hbar"><b></b></i>hábitos feitos no dia</span><span><i class="lg-plan"></i>treino planejado · riscado: não feito</span></div></div>`;
   const sd=pd(UI.calSel);
   let a=`<aside class="card agenda"><div class="card-h"><div><p class="eyebrow">${DOWF[sd.getDay()]}</p><h2>${sd.getDate()} de ${MESF[sd.getMonth()].toLowerCase()}</h2></div></div>
     <div class="actions" style="margin-bottom:10px"><button class="btn" data-act="event-new" data-date="${UI.calSel}">${ic('plus')}Evento</button><button class="btn" data-act="task-new" data-date="${UI.calSel}">${ic('plus')}Tarefa</button><button class="btn" data-act="w-new" data-date="${UI.calSel}">${ic('plus')}Treino</button></div>`;
@@ -1405,7 +1553,7 @@ function plansCard(){
   const ps=[...(S.plans||[])].sort((a,b)=>(a.active===false)-(b.active===false)||String(a.createdAt).localeCompare(String(b.createdAt)));
   const mon=monOf(new Date()),tk=today();
   let h=`<section class="card" style="margin-bottom:16px"><div class="card-h"><div><h2>Programa</h2><div class="src" style="margin-top:2px">Treinos recorrentes aparecem planejados na agenda e na visão geral</div></div><button class="btn" data-act="plan-new">${ic('plus')}Treino recorrente</button></div>`;
-  if(!ps.length)return h+`<div class="empty">Nenhum treino recorrente. Crie as sessões do seu programa (ex.: Push seg/qui, Pull ter/sex, Legs qua/sáb, corrida sáb) e elas passam a aparecer nos dias certos.</div></section>`;
+  if(!ps.length)return h+emptyBox('work','Nenhum treino recorrente','Crie as sessões do seu programa (ex.: Push seg/qui, Pull ter/sex, corrida sáb) e elas passam a aparecer na agenda nos dias certos.')+`</section>`;
   h+=`<div class="list">`+ps.map(p=>{
     const t=WT[p.type]||WT.other;const wk=[...Array(7)].map((_,i)=>dk(addD(mon,i))).filter(k=>occursOn(p.rec,k));
     const dn=wk.filter(k=>planDone(p,k)).length;const nx=occursOn(p.rec,tk)&&!planDone(p,tk)?tk:nextOcc(p.rec,tk);
@@ -1428,10 +1576,11 @@ function vTreinos(){
   h+=`<div class="kpis kpis-cor">${kpi(`${ww.length}<small> / ${weekTarget()}</small>`,'nesta semana',ww.length/weekTarget(),'k-blue')}${kpi(month.length,`sessões em ${MESF[new Date().getMonth()].toLowerCase()}`,null,'k-red')}${kpi(`${nf(month.filter(w=>w.type==='run').reduce((s,w)=>s+(w.km||0),0),1)}<small> km</small>`,'corridos no mês',null,'k-lime')}${kpi(pace?secFmt(pace):'–',`pace médio · últimas ${last5.length} corridas`,null,'k-indigo')}</div>`;
   h+=plansCard();
   h+=`<section class="card"><div class="card-h"><h2>Histórico</h2></div>`;
-  if(!ws.length)h+=`<div class="empty">Nenhum treino ainda. Registre um treino ou sincronize com o Strava.</div>`;
+  if(!ws.length)h+=emptyBox('work','Nenhum treino ainda','Registre um treino ou sincronize com o Strava.',emptyBtn('w-new','Registrar treino'));
   else{
-    let cur='';
-    ws.slice(0,60).forEach(w=>{const m=dk(monOf(pd(w.date)));if(m!==cur){cur=m;const n=ws.filter(x=>dk(monOf(pd(x.date)))===m).length;h+=`<div class="group-h">Semana de ${fmtD(m)} <span class="mono">${n} treino${n>1?'s':''}</span></div>`}h+=`<div class="list">${wCard(w)}</div>`});
+    let cur='';const wkOf=w=>dk(monOf(pd(w.date))),weeks=[...new Set(ws.map(wkOf))],shown=new Set(weeks.slice(0,UI.wWeeks||6));
+    ws.filter(w=>shown.has(wkOf(w))).forEach(w=>{const m=dk(monOf(pd(w.date)));if(m!==cur){cur=m;const n=ws.filter(x=>dk(monOf(pd(x.date)))===m).length;h+=`<div class="group-h">Semana de ${fmtD(m)} <span class="mono">${n} treino${n>1?'s':''}</span></div>`}h+=`<div class="list">${wCard(w)}</div>`});
+    if(weeks.length>shown.size)h+=`<button class="btn more-btn" data-act="w-more">Mostrar semanas anteriores <span class="muted">${weeks.length-shown.size} restantes</span></button>`;
   }
   return h+`</section>`;
 }
@@ -1450,8 +1599,8 @@ function vStats(){
   const rate=created30.length?created30.filter(x=>x.done).length/created30.length:null;
   const w30=S.workouts.filter(w=>w.date>=dk(addD(t,-29)));
   const best=hs.map(x=>streak(x)).reduce((m,s)=>Math.max(m,s.n),0);
-  const kpi=(v,l)=>`<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`;
-  h+=`<div class="kpis">${kpi(avg==null?'–':Math.round(avg*100)+'<small>%</small>','consistência média dos hábitos (30 d)')}${kpi(best,'maior sequência ativa')}${kpi(tdone7,`tarefas concluídas em 7 dias${rate!=null?` · ${Math.round(rate*100)}% das criadas em 30 d`:''}`)}${kpi(w30.length,'treinos nos últimos 30 dias')}</div>`;
+  const kpi=(v,l,c)=>`<div class="kpi ${c}"><div class="v">${v}</div><div class="l">${l}</div></div>`;
+  h+=`<div class="kpis kpis-cor">${kpi(avg==null?'–':Math.round(avg*100)+'<small>%</small>','consistência média dos hábitos (30 d)','k-hab')}${kpi(best,'maior sequência ativa','k-hab')}${kpi(tdone7,`tarefas concluídas em 7 dias${rate!=null?` · ${Math.round(rate*100)}% das criadas em 30 d`:''}`,'k-tar')}${kpi(w30.length,'treinos nos últimos 30 dias','k-tre')}</div>`;
 
   // weeks labels
   const weeks=[...Array(12)].map((_,i)=>addD(monOf(t),(i-11)*7));
@@ -1471,7 +1620,7 @@ function vStats(){
 
   // heatmap card
   h+=`<section class="card" style="margin-bottom:16px"><div class="card-h"><h2>Hábitos · últimas <span data-heat-weeks>20</span> semanas</h2><span class="muted small">% dos hábitos diários cumpridos por dia</span></div>
-    ${hs.length?`<div class="chart" data-chart="heat"></div><div class="hm-legend">menos <i style="background:var(--surface-2);border:1px solid var(--line)"></i><i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i><i style="background:var(--h5)"></i> 100%</div>`:'<div class="empty">Crie hábitos para ver o mapa de consistência.</div>'}
+    ${hs.length?`<div class="chart" data-chart="heat"></div><div class="hm-legend">menos <i style="background:var(--surface-2);border:1px solid var(--line)"></i><i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i><i style="background:var(--h5)"></i> 100%</div>`:emptyBox('stats','Sem hábitos ainda','Crie hábitos para ver o mapa de consistência.')}
   </section>`;
   // um mapa por hábito, no mesmo estilo do mapa geral
   if(hs.length){
@@ -1549,7 +1698,7 @@ function drawLine(el,c){
 function drawHeat(el){
   // como no GitHub: quadradinhos de ~18px e tantas semanas quantas couberem (de 20 a 53), ocupando a largura toda
   const W=Math.max(260,el.clientWidth),lw=26,gap=3,avail=W-lw;
-  const cols=clamp(Math.floor((avail+gap)/(18+gap)),20,53),step=Math.min(25,(avail+gap)/cols),rs=Math.round(step);
+  const nativeCols=clamp(Math.floor((avail+gap)/(18+gap)),20,53),cols=compassoMapWeeks,step=Math.min(25,(avail+gap)/nativeCols),rs=Math.round(step);
   const cs=rs-gap,H=18+7*rs-gap,X=c=>Math.round(lw+c*step),Y=r=>18+r*rs;
   const start=addD(monOf(new Date()),-(cols-1)*7);const tk=today();
   const hb=el.dataset.habit?S.habits.find(x=>x.id===el.dataset.habit):null;
@@ -1574,8 +1723,21 @@ function drawHeat(el){
 }
 
 /* ============ modals ============ */
-function openModal(html){$('#sheet').innerHTML=html;$('#modal').hidden=false;syncAllRec();syncForms();const f=$('#sheet').querySelector('input,select,textarea');if(f)setTimeout(()=>f.focus(),30)}
-function closeModal(){$('#modal').hidden=true;$('#sheet').innerHTML='';UI.draft=null;UI.draftMode='log'}
+let modalT=0,modalFrom=null;
+function openModal(html){
+  const M=$('#modal'),wasOpen=!M.hidden&&!M.classList.contains('closing');
+  clearTimeout(modalT);M.classList.remove('closing');
+  $('#sheet').innerHTML=html;M.hidden=false;
+  if(!wasOpen){modalFrom=document.activeElement;try{if(!(history.state&&history.state.modal))history.pushState({...(history.state||{}),modal:1},'')}catch{}}
+  syncAllRec();syncForms();const f=$('#sheet').querySelector('input,select,textarea');if(f)setTimeout(()=>f.focus(),30)}
+function closeModal(fromPop){
+  const M=$('#modal');UI.draft=null;UI.draftMode='log';
+  if(M.hidden||M.classList.contains('closing'))return;
+  if(!fromPop&&history.state&&history.state.modal){skipPop++;history.back()}
+  const done=()=>{M.hidden=true;M.classList.remove('closing');$('#sheet').innerHTML='';
+    if(kbd&&modalFrom&&modalFrom.isConnected)modalFrom.focus({preventScroll:true});modalFrom=null};
+  if(motionOK()){M.classList.add('closing');modalT=setTimeout(done,210)}else done();
+}
 function syncForms(){
   const md=document.getElementById('f-mode');if(md)document.querySelectorAll('#sheet [data-mshow]').forEach(el=>{el.dataset.mh=el.dataset.mshow!==md.value?'1':''});
   const fg=document.getElementById('f-goal');if(fg)document.querySelectorAll('#sheet [data-needgoal]').forEach(el=>el.hidden=!fg.value);
@@ -1587,18 +1749,21 @@ function syncForms(){
 const fv=id=>{const el=document.getElementById(id);return el?el.value.trim():''};
 const foot=(delAct,id)=>`<div class="sheet-foot">${id?`<button type="button" class="btn danger" data-act="arm" data-go="${delAct}" data-id="${id}">Excluir</button>`:''}<div class="r"><button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Salvar</button></div></div>`;
 
-function taskModal(x,date,goalId){
-  x=x||{goalId:goalId||'',title:'',cat:UI.lastCat||catList()[0].id,prio:2,due:date||'',notes:''};
+function taskModal(x,date,goalId,categoryId){
+  const selectedCat=categoryId||(UI.view==='tarefas'&&UI.taskCat!=='all'&&UI.taskCat!=='__uncategorized'?UI.taskCat:'')||UI.lastCat||catList()[0].id;
+  x=x||{goalId:goalId||'',title:'',cat:selectedCat,prio:2,due:date||'',notes:''};
   openModal(`<h2>${x.id?'Editar tarefa':'Nova tarefa'}</h2><form class="form" data-form="task" data-id="${x.id||''}">
    <div class="field"><label for="f-title">Tarefa</label><input type="text" id="f-title" required value="${esc(x.title)}"></div>
    <div class="frow"><div class="field"><label for="f-cat">Categoria</label><select id="f-cat">${catOptions(x.cat)}</select></div>
    <div class="field"><label for="f-due">Prazo</label><input type="date" id="f-due" value="${esc(x.due||'')}"></div>
    <div class="field"><label for="f-prio">Prioridade</label><select id="f-prio">${[1,2,3].map(p=>`<option value="${p}" ${+x.prio===p?'selected':''}>${PRIO[p]}</option>`).join('')}</select></div></div>
+   <details class="more-opts" ${x.dueTime||x.goalId||hasRec(x.rec)||x.notes?'open':''}><summary>Mais opções <span>horário, lembrete, meta, repetição e notas</span></summary><div class="more-body">
+   <div class="frow"><div class="field"><label for="f-due-time">Horário do prazo (opcional)</label><input type="time" id="f-due-time" value="${esc(x.dueTime||'')}"><span class="muted small">Sem horário: ${esc(notificationPrefs().taskTime)}.</span></div><label class="chip"><input type="checkbox" id="f-remind" ${x.reminderEnabled!==false?'checked':''}> Lembrar desta tarefa</label></div>
    <div class="frow"><div class="field"><label for="f-goal">Faz parte da meta</label><select id="f-goal">${goalOptions(x.goalId)}</select></div>
    <div class="field" data-needgoal><label for="f-gw">Peso na meta</label><select id="f-gw">${weightOptions(x.goalW)}</select></div></div>
    ${recFields('tr',x.rec,{hideStart:true,label:'Repetir tarefa'})}
    <p class="muted small" style="margin:0" data-show-note>Tarefas recorrentes: ao concluir, a próxima ocorrência é criada com o novo prazo.</p>
-   <div class="field"><label for="f-notes">Notas</label><textarea id="f-notes">${esc(x.notes||'')}</textarea></div>${foot('task-del',x.id)}</form>`);
+   <div class="field"><label for="f-notes">Notas</label><textarea id="f-notes">${esc(x.notes||'')}</textarea></div></div></details>${foot('task-del',x.id)}</form>`);
 }
 function eventModal(e,date){
   e=e||{title:'',date:date||today(),start:'',end:'',cat:UI.lastCat||catList()[0].id,notes:''};
@@ -1609,7 +1774,8 @@ function eventModal(e,date){
    <div class="field"><label for="f-end">Fim</label><input type="time" id="f-end" value="${esc(e.end||'')}"></div></div>
    <div class="field"><label for="f-cat">Categoria</label><select id="f-cat">${catOptions(e.cat)}</select></div>
    <div class="field"><label for="f-notes">Notas</label><textarea id="f-notes">${esc(e.notes||'')}</textarea></div>
-   <p class="muted small" style="margin:0">Eventos criados aqui ficam no Compasso; os do Google Calendar aparecem automaticamente ao lado.</p>${foot('event-del',e.id)}</form>`);
+   <div class="frow"><label class="chip"><input type="checkbox" id="f-remind" ${e.reminderEnabled!==false?'checked':''}> Lembrar deste compromisso</label><div class="field"><label for="f-remind-min">Avisar quantos minutos antes?</label><input type="number" min="0" max="10080" id="f-remind-min" value="${e.reminderMinutes??notificationPrefs().eventLeadMinutes}"></div></div>
+   <p class="muted small" style="margin:0">Os compromissos ficam na sua agenda do Compasso. Defina o horário de início para receber o lembrete.</p>${foot('event-del',e.id)}</form>`);
 }
 function habitModal(x){
   x=x||{name:'',freq:'daily',target:3,goalId:'',cat:''};
@@ -1620,6 +1786,7 @@ function habitModal(x){
    </div><div data-hshow="sched">${recFields('hr',x.rec,{allowNone:false,label:'Programação',start:x.createdAt?String(x.createdAt).slice(0,10):today()})}</div><div class="frow"><div class="field"><label for="f-hcat">Categoria</label><select id="f-hcat">${catOptions(x.cat||catList()[0].id)}</select></div>
    <div class="field"><label for="f-autow">Marcar sozinho quando houver treino</label><select id="f-autow">${AUTOW.map(([v,l])=>`<option value="${v}" ${(x.autoW||'')===v?'selected':''}>${l}</option>`).join('')}</select></div></div>
    <p class="muted small" style="margin:0">Treinos do Strava ou registrados à mão marcam o hábito no dia do treino, a partir da data de criação do hábito.</p>
+   <div class="frow"><label class="chip"><input type="checkbox" id="f-remind" ${x.reminderEnabled!==false?'checked':''}> Lembrar deste hábito</label><div class="field"><label for="f-remind-time">Horário do lembrete</label><input type="time" id="f-remind-time" value="${esc(x.reminderTime||notificationPrefs().habitTime)}"></div></div>
    <div class="frow"><div class="field"><label for="f-goal">Faz parte da meta</label><select id="f-goal">${goalOptions(x.goalId)}</select></div>
    <div class="field" data-needgoal><label for="f-gw">Peso na meta</label><select id="f-gw">${weightOptions(x.goalW)}</select></div>
    <div class="field" data-needgoal><label for="f-gtarget">Execuções para 100%</label><input type="number" min="1" id="f-gtarget" value="${x.goalTarget||''}" placeholder="automático"></div></div>
@@ -1645,11 +1812,56 @@ function goalModal(g){
    ${g.id?`<label class="chip" style="font-size:13px"><input type="checkbox" id="f-done" ${g.done?'checked':''}> ${isPer(g)?'Encerrar meta (para de renovar)':'Meta concluída'}</label>`:''}
    ${foot('goal-del',g.id)}</form>`);
 }
+function notificationPrefs(){
+  return {enabled:true,timeZone:'America/Sao_Paulo',tasks:true,habits:true,events:true,summary:true,pendingHabits:true,taskLeadMinutes:[1440,60],taskTime:'18:00',eventLeadMinutes:15,habitTime:'09:00',summaryTime:'08:00',pendingHabitsTime:'20:00',...(S.settings.notifications||{})};
+}
+function cloudConnections(){
+  const c=window.CompassoLocal&&window.CompassoLocal.cloud;if(!c)return '';
+  const st=c.info&&c.info.strava;
+  const state=!st?'verificando…':!st.configured?'em preparação':st.error==='needs_reauth'?'precisa de autorização':st.connected?`conectado${st.athlete?' · '+esc(st.athlete):''}`:'desconectado';
+  const push=c.subscription?'ativadas neste aparelho':c.needsInstall()?'adicione à Tela de Início para ativar':'desativadas neste aparelho';
+  return `<div class="conn-row"><span><b>Strava</b> · ${state}${st&&st.lastSync?`<br><span class="muted small">Última sincronização: ${esc(new Date(st.lastSync).toLocaleString('pt-BR'))}</span>`:''}</span>${st&&st.configured?`<div class="actions"><button type="button" class="btn small" data-act="cloud-strava-connect">${st.connected?'Reconectar':'Conectar'}</button>${st.connected?'<button type="button" class="btn small danger" data-act="cloud-strava-disconnect">Desconectar</button>':''}</div>`:''}</div>
+    <div class="conn-row"><span><b>Notificações</b> · ${push}</span></div>${c.error?`<p class="muted small">${esc(c.error)}</p>`:''}`;
+}
+function notificationModal(){
+  const p=notificationPrefs(),c=window.CompassoLocal&&window.CompassoLocal.cloud;
+  const tick=(id,label,on)=>`<label class="chip"><input type="checkbox" id="${id}" ${on?'checked':''}> ${label}</label>`;
+  const time=(id,label,value)=>`<div class="field"><label for="${id}">${label}</label><input type="time" id="${id}" value="${esc(value)}" required></div>`;
+  openModal(`<h2>Notificações e lembretes</h2><form class="form" data-form="notifications">
+    <div class="recbox"><div id="notification-device">${notificationDevice()}</div><p class="muted small" style="margin:0">Ative em cada aparelho que deve receber os avisos. Os horários abaixo são compartilhados pela sua conta. A entrega depende da conexão e das configurações de notificações e Foco do aparelho.</p></div>
+    ${tick('n-enabled','Receber lembretes do Compasso',p.enabled)}
+    <div class="field"><label for="n-zone">Fuso dos lembretes</label><input id="n-zone" value="${esc(p.timeZone)}" required list="n-zones"><datalist id="n-zones"><option value="America/Sao_Paulo"><option value="America/Manaus"><option value="America/Rio_Branco"><option value="America/Noronha"><option value="Europe/Lisbon"></datalist></div>
+    <div class="lbl">Tarefas próximas do prazo</div>${tick('n-tasks','Avisar sobre tarefas',p.tasks)}
+    <div class="frow"><div class="field"><label for="n-task-days">Primeiro aviso: dias antes</label><input id="n-task-days" type="number" min="0" max="30" value="${(p.taskLeadMinutes[0]??1440)/1440}" step="1"></div><div class="field"><label for="n-task-minutes">Segundo aviso: minutos antes</label><input id="n-task-minutes" type="number" min="0" max="1440" value="${p.taskLeadMinutes[1]??60}"></div>${time('n-task-time','Prazo quando não houver horário',p.taskTime)}</div>
+    <div class="lbl">Hábitos</div>${tick('n-habits','Avisar no horário do hábito',p.habits)}${time('n-habit-time','Horário padrão para hábitos sem horário próprio',p.habitTime)}<p class="muted small" style="margin:0">Você pode alterar o horário de cada hábito na edição dele. Hábitos concluídos e metas semanais já atingidas não geram lembretes.</p>
+    ${tick('n-pending','Lembrar dos hábitos ainda pendentes',p.pendingHabits)}${time('n-pending-time','Lembrete dos hábitos pendentes',p.pendingHabitsTime)}
+    <div class="lbl">Agenda</div>${tick('n-events','Lembrar dos compromissos',p.events)}<div class="field"><label for="n-event-minutes">Avisar quantos minutos antes?</label><input type="number" id="n-event-minutes" min="0" max="10080" value="${p.eventLeadMinutes}"></div>
+    <div class="lbl">Resumo do dia</div>${tick('n-summary','Enviar resumo das pendências',p.summary)}${time('n-summary-time','Horário do resumo',p.summaryTime)}
+    <div class="sheet-foot"><div class="r"><button type="button" class="btn" data-act="settings">Voltar</button><button type="submit" class="btn primary">Salvar</button></div></div></form>`);
+  if(c&&!c.info)c.refresh().catch(()=>{});
+}
+function notificationDevice(){
+  const c=window.CompassoLocal&&window.CompassoLocal.cloud;
+  if(!c)return '<p class="muted small">Disponível na versão na nuvem do Compasso.</p>';
+  if(c.needsInstall())return '<p class="muted small">No iPhone: abra no Safari, toque em Compartilhar → Adicionar à Tela de Início e abra o Compasso pelo ícone. Depois volte aqui para ativar os avisos.</p>';
+  if(!c.supported())return '<p class="muted small">Este navegador não oferece notificações. Use um navegador atualizado com suporte a avisos.</p>';
+  return `<div class="conn-row"><span>${c.subscription?'Notificações ativadas neste aparelho.':'Notificações desativadas neste aparelho.'}</span><div class="actions">${c.subscription?'<button type="button" class="btn small" data-act="push-test">Enviar aviso de teste</button><button type="button" class="btn small" data-act="push-disable">Desativar aqui</button>':'<button type="button" class="btn small" data-act="push-enable">Ativar neste aparelho</button>'}</div></div>`;
+}
+async function cloudAction(action,el,message){
+  if(el)el.disabled=true;
+  try{await action();if(message)toast(message)}catch(e){toast(e.message||'Não foi possível concluir.')}finally{if(el&&el.isConnected)el.disabled=false}
+}
+window.addEventListener('compasso:cloud',()=>{
+  const panel=$('#cloud-connections');if(panel)panel.innerHTML=cloudConnections();
+  const device=$('#notification-device');if(device)device.innerHTML=notificationDevice();
+  schedule();
+});
 function settingsModal(){
   UI.catDraft=catList().map(c=>({...c}));UI.connDraft=null;
   renderSettings();
   const L=window.CompassoLocal;
   if(L&&L.server)L.server.refresh().then(()=>{if($('#sheet form[data-form="settings"]')){readCatDraft();renderSettings()}}).catch(()=>{});
+  if(L&&L.cloud)L.cloud.refresh().catch(()=>{});
 }
 function renderSettings(){
   const names=['Azul','Laranja','Verde-água','Amarelo','Rosa','Verde','Violeta','Vermelho'];
@@ -1665,6 +1877,7 @@ function renderSettings(){
 function localPanel(){
   const L=window.CompassoLocal;if(!L)return '';
   if(L.server)return serverPanel(L);
+  if(L.cloud)return `<div class="lbl">Conexões e dados</div><div class="recbox"><div class="conn-row"><span><b>Dados</b> · sincronizados · ${esc(L.user()||'')}</span><button type="button" class="btn small" data-act="lc-signout">Sair</button></div><div id="cloud-connections">${cloudConnections()}</div><div class="actions">${L.cloud.needsInstall()?'<button type="button" class="btn small" data-act="prepare-installation">Preparar acesso na Tela de Início</button>':''}<button type="button" class="btn small" data-act="notification-settings">Notificações e lembretes</button><button type="button" class="btn small" data-act="lc-export">Exportar backup</button><button type="button" class="btn small" data-act="lc-import">Importar backup</button></div></div>`;
   const g=L.google,st=L.strava;
   const gS=!g.configured()?'não configurado':g.connected()?'conectado':'desconectado';
   const sS=!st.configured()?'não configurado':st.viaLogin()?'autenticado pelo login':st.hasKey()?'chave salva':'sem chave';
@@ -1761,25 +1974,130 @@ function planLog(p,key){
   const ex=JSON.parse(JSON.stringify((last&&last.exercises)||p.exercises||[]));
   workoutModal({type:p.type,title:p.title,date:key||today(),durMin:p.durMin||'',notes:'',exercises:ex.length?ex:[{name:'',sets:[{reps:'',kg:''}]}],km:p.km||'',timeSec:p.timeSec||0,source:'manual',planId:p.id},null,'log');
 }
+/* ============ movimento ============
+   A tela é atualizada no lugar (morph): só muda o que mudou, então cada elemento pode
+   animar a própria mudança. Linhas com data-key entram e saem animadas; números que
+   mudam fazem um "tick". Troca de tela, carga inicial e filtros não animam linhas. */
+const EZ='cubic-bezier(.2,.8,.2,1)',EZ_IN='cubic-bezier(.4,0,1,1)',EZ_POP='cubic-bezier(.34,1.56,.64,1)';
+const motionOK=()=>!matchMedia('(prefers-reduced-motion: reduce)').matches;
+const BOOT=performance.now();let quiet=0;
+const calm=()=>quiet>0||dbState!=='ok'||performance.now()-BOOT<1500||!motionOK();
+function quietRender(){quiet++;try{render()}finally{quiet--}}
+const pinned=n=>n.nodeType===1&&(n.hasAttribute('data-leaving')||n.hasAttribute('data-persist'));
+const mkey=n=>n.nodeType!==1?null:n.id||n.getAttribute('data-key')||(n.hasAttribute('data-act')&&n.hasAttribute('data-id')?n.getAttribute('data-act')+':'+n.getAttribute('data-id')+':'+(n.getAttribute('data-k')||''):null);
+function morph(el,html,anim){const t=document.createElement(el.tagName);t.innerHTML=html;morphKids(el,t,anim)}
+function morphKids(a,b,anim){
+  const kids=[...b.childNodes],want=new Set(kids.map(mkey).filter(Boolean)),keyed=new Map(),dead=[];
+  for(let n=a.firstChild;n;n=n.nextSibling){const k=mkey(n);if(k&&!pinned(n))keyed.set(k,n)}
+  let cur=a.firstChild;
+  // linhas que vão sair ficam no lugar (para encolher onde estavam) e não travam o pareamento
+  const skip=()=>{while(cur&&(pinned(cur)||(mkey(cur)&&!want.has(mkey(cur))))){if(!pinned(cur))dead.push(cur);cur=cur.nextSibling}};
+  for(const nn of kids){
+    skip();
+    const k=mkey(nn);let m=null;
+    if(k){m=keyed.get(k);if(m&&m.nodeName!==nn.nodeName)m=null;if(m)keyed.delete(k)}
+    else if(cur&&!mkey(cur)&&cur.nodeType===nn.nodeType&&cur.nodeName===nn.nodeName)m=cur;
+    if(m){if(m===cur)cur=cur.nextSibling;else a.insertBefore(m,cur);morphNode(m,nn,anim)}
+    else{a.insertBefore(nn,cur);if(anim&&nn.nodeType===1&&nn.hasAttribute('data-key'))enterEl(nn)}
+  }
+  for(;cur;cur=cur.nextSibling)if(!pinned(cur))dead.push(cur);
+  dead.forEach(n=>{if(anim&&n.nodeType===1&&n.hasAttribute('data-key'))leaveEl(n);else n.remove()});
+}
+function morphNode(a,b,anim){
+  if(a.nodeType!==1){if(a.nodeValue!==b.nodeValue){a.nodeValue=b.nodeValue;if(anim&&a.nodeType===3)tick(a.parentNode)}return}
+  for(const {name} of [...a.attributes])if(!b.hasAttribute(name))a.removeAttribute(name);
+  for(const {name,value} of [...b.attributes])if(a.getAttribute(name)!==value){
+    a.setAttribute(name,value);
+    if(anim&&name==='aria-checked'&&value==='true')pop(a);
+  }
+  if(a===document.activeElement&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'))return;
+  morphKids(a,b,anim);
+}
+// abre espaço e aparece / encolhe e some, empurrando os vizinhos com suavidade
+function boxFrames(el){const cs=getComputedStyle(el);return {h:el.offsetHeight+'px',pt:cs.paddingTop,pb:cs.paddingBottom,mt:cs.marginTop,mb:cs.marginBottom}}
+const shut={height:'0px',paddingTop:'0px',paddingBottom:'0px',marginTop:'0px',marginBottom:'0px',opacity:0};
+function enterEl(el){
+  const f=boxFrames(el);el.style.overflow='hidden';
+  el.animate([{...shut,transform:'translateY(-4px)'},{height:f.h,paddingTop:f.pt,paddingBottom:f.pb,marginTop:f.mt,marginBottom:f.mb,opacity:1,transform:'none'}],{duration:300,easing:EZ})
+    .finished.then(()=>{el.style.overflow=''},()=>{});
+}
+function leaveEl(el){
+  el.setAttribute('data-leaving','');el.style.pointerEvents='none';
+  const f=boxFrames(el);el.style.overflow='hidden';
+  const wait=el.classList.contains('just-done')?520:0;
+  el.animate([{height:f.h,paddingTop:f.pt,paddingBottom:f.pb,marginTop:f.mt,marginBottom:f.mb,opacity:1},shut],{duration:280,delay:wait,easing:EZ,fill:'forwards'})
+    .finished.then(()=>el.remove(),()=>el.remove());
+}
+function pop(el){
+  el.animate([{transform:'scale(1)'},{transform:'scale(1.3)',offset:.35},{transform:'scale(1)'}],{duration:360,easing:EZ_POP});
+  if(el.classList.contains('hl-ck'))el.animate([{boxShadow:'0 0 0 0 color-mix(in srgb,var(--gc) 55%,transparent)'},{boxShadow:'0 0 0 10px color-mix(in srgb,var(--gc) 0%,transparent)'}],{duration:520,easing:'ease-out'});
+}
+function tick(p){
+  const el=p&&p.closest&&p.closest('.v,.gl-p,.hg-c,.km-v,.hl-s,.task-list-title .mono,.fchip .n');if(!el)return;
+  const block=getComputedStyle(el).display!=='inline';
+  el.animate(block?[{transform:'translateY(.3em)',opacity:.15},{transform:'none',opacity:1}]:[{opacity:.15},{opacity:1}],{duration:280,easing:EZ});
+}
+function slideIn(sel,dir,dx=16){const el=document.querySelector(sel);if(el&&motionOK())el.animate([{opacity:0,transform:`translateX(${dir*dx}px)`},{opacity:1,transform:'none'}],{duration:260,easing:EZ})}
+// anéis do Início enchem a partir do zero quando a tela aparece
+function fillRings(){
+  if(!motionOK())return;
+  document.querySelectorAll('.rings-w svg circle[style]').forEach((c,i)=>{const C=+c.getAttribute('stroke-dasharray'),to=parseFloat(c.style.strokeDashoffset);
+    if(C&&to<C)c.animate([{strokeDashoffset:C},{strokeDashoffset:to}],{duration:900,delay:120+i*90,easing:EZ,fill:'backwards'})});
+}
+// marcador da navegação: desliza até o item ativo
+function placeNavInd(){
+  const nav=$('#nav');let ind=nav.querySelector('.nav-ind');
+  if(!ind){ind=document.createElement('i');ind.className='nav-ind';ind.setAttribute('aria-hidden','true');ind.setAttribute('data-persist','');nav.prepend(ind)}
+  const b=nav.querySelector('[aria-current="page"]');
+  if(!b||getComputedStyle(ind).display==='none'){nav.classList.remove('has-ind');return}
+  const x=b.offsetLeft,w=b.offsetWidth,ox=+ind.dataset.x,ow=+ind.dataset.w;
+  if(x===ox&&w===ow&&nav.classList.contains('has-ind'))return;
+  ind.style.width=w+'px';ind.style.transform=`translateX(${x}px)`;ind.dataset.x=x;ind.dataset.w=w;nav.classList.add('has-ind');
+  if(ind.dataset.x&&!isNaN(ox)&&!viewTr&&motionOK())ind.animate([{width:ow+'px',transform:`translateX(${ox}px)`},{width:w+'px',transform:`translateX(${x}px)`}],{duration:420,easing:'cubic-bezier(.3,1.25,.5,1)'});
+}
+let viewTr=null,skipPop=0,kbd=false;const scrollMem={};
+function switchView(v,opt={}){
+  if(v===UI.view){quietRender();window.scrollTo({top:0,behavior:motionOK()?'smooth':'auto'});return}
+  const order=VIEWS.map(x=>x[0]),dir=order.indexOf(v)>=order.indexOf(UI.view)?1:-1;
+  scrollMem[UI.view]=window.scrollY;
+  if(!opt.back){try{history.pushState({v},'','#'+v)}catch{}}
+  const go=()=>{UI.view=v;quietRender();window.scrollTo(0,opt.back?(scrollMem[v]||0):0)};
+  const main=$('#main'),ind=$('#nav .nav-ind');
+  if(document.startViewTransition&&motionOK()){
+    document.documentElement.dataset.dir=dir>0?'fwd':'back';
+    main.style.viewTransitionName='main';if(ind)ind.style.viewTransitionName='nav-ind';
+    viewTr=document.startViewTransition(go);
+    viewTr.finished.finally(()=>{viewTr=null;main.style.viewTransitionName='';if(ind)ind.style.viewTransitionName=''});
+  }else{go();if(motionOK())main.animate([{opacity:0,transform:`translateX(${dir*14}px)`},{opacity:1,transform:'none'}],{duration:280,easing:EZ})}
+  if(v==='hoje')requestAnimationFrame(fillRings);
+}
+window.addEventListener('popstate',()=>{
+  if(skipPop){skipPop--;return}
+  if(!$('#modal').hidden){closeModal(true);return}
+  const h=(location.hash||'').slice(1)||'hoje';if(VIEWS.some(x=>x[0]===h)&&h!==UI.view)switchView(h,{back:true});
+});
+document.addEventListener('keydown',e=>{if(e.key==='Tab'||e.key==='Enter'||e.key===' ')kbd=true},true);
+document.addEventListener('pointerdown',()=>{kbd=false},true);
+
 /* ============ events ============ */
 const A={
-  nav:d=>{UI.view=d.v;try{history.replaceState(null,'','#'+d.v)}catch{};window.scrollTo(0,0);render()},
+  nav:d=>switchView(d.v),
   settings:()=>settingsModal(),
   close:()=>closeModal(),
   arm:(d,el)=>{if(el.classList.contains('armed')){A[d.go](d);closeModal();return}el.classList.add('armed');el.textContent='Confirmar exclusão';setTimeout(()=>{if(el.isConnected){el.classList.remove('armed');el.textContent='Excluir'}},4000)},
-  'task-new':d=>taskModal(null,d.date),'task-new-goal':d=>{closeModal();taskModal(null,'',d.g)},'task-edit':d=>taskModal(S.tasks.find(x=>x.id===d.id)),
-  'task-toggle':d=>{toggleTask(d.id);const ga=$('#sheet .gm-auto');const f=$('#sheet form[data-form="goal"]');if(ga&&f&&f.dataset.id){const g=goalOf(f.dataset.id);if(g)ga.innerHTML=goalPartsHtml(g)}},'task-del':d=>del('tasks',d.id),
-  'task-cat':d=>{UI.taskCat=d.c;render()},'task-go':d=>{UI.taskCat=d.c||'all';UI.taskShow='open';A.nav({v:'tarefas'})},
-  'strip-day':d=>{UI.calSel=d.k;const x=pd(d.k);UI.calMonth=new Date(x.getFullYear(),x.getMonth(),1);A.nav({v:'calendario'})},'task-show':d=>{UI.taskShow=d.s;render()},
-  'event-new':d=>eventModal(null,d.date),'event-edit':d=>eventModal(S.events.find(x=>x.id===d.id)),'event-del':d=>del('events',d.id),
+  'task-new':d=>taskModal(null,d.date,null,d.c),'task-new-goal':d=>{closeModal();taskModal(null,'',d.g)},'task-edit':d=>taskModal(S.tasks.find(x=>x.id===d.id)),
+  'task-toggle':(d,el)=>{const x0=S.tasks.find(t=>t.id===d.id);if(x0&&!x0.done){const r=el.closest('.row,.gp');if(r)r.classList.add('just-done');if(motionOK())pop(el)}toggleTask(d.id);const ga=$('#sheet .gm-auto');const f=$('#sheet form[data-form="goal"]');if(ga&&f&&f.dataset.id){const g=goalOf(f.dataset.id);if(g)ga.innerHTML=goalPartsHtml(g)}},'task-del':d=>delUndo('tasks',d.id,'Tarefa excluída'),
+  'task-cat':d=>{UI.taskCat=d.c;quietRender()},'task-go':d=>{UI.taskCat=d.c||'all';UI.taskShow='open';A.nav({v:'tarefas'})},
+  'strip-day':d=>{UI.calSel=d.k;const x=pd(d.k);UI.calMonth=new Date(x.getFullYear(),x.getMonth(),1);A.nav({v:'calendario'})},'task-show':d=>{UI.taskShow=d.s;quietRender()},
+  'event-new':d=>eventModal(null,d.date),'event-edit':d=>eventModal(S.events.find(x=>x.id===d.id)),'event-del':d=>delUndo('events',d.id,'Evento excluído'),
   'habit-new':()=>habitModal(),'habit-edit':d=>habitModal(S.habits.find(x=>x.id===d.id)),
-  'habit-toggle':d=>toggleHabit(d.id,d.k),'habit-del':d=>{del('habits',d.id)},
-  'goal-new':()=>goalModal(),'goal-edit':d=>goalModal(S.goals.find(x=>x.id===d.id)),'goal-del':d=>{del('goals',d.id)},
+  'habit-toggle':d=>toggleHabit(d.id,d.k),'habit-del':d=>{delUndo('habits',d.id,'Hábito excluído')},
+  'goal-new':()=>goalModal(),'goal-edit':d=>goalModal(S.goals.find(x=>x.id===d.id)),'goal-del':d=>{delUndo('goals',d.id,'Meta excluída')},
   'goal-step':d=>{const g=S.goals.find(x=>x.id===d.id);if(!g)return;const cur=Math.max(0,(+g.current||0)+(+d.d));put('goals',g.id,{...strip(g),current:cur,done:g.target>0&&cur>=g.target?true:g.done})},
-  'cal-nav':d=>{const m=UI.calMonth;UI.calMonth=new Date(m.getFullYear(),m.getMonth()+(+d.d),1);render()},
-  'cal-today':()=>{const t=new Date();UI.calMonth=new Date(t.getFullYear(),t.getMonth(),1);UI.calSel=today();render()},
-  'cal-sel':d=>{UI.calSel=d.k;render();if(window.innerWidth<1100){const a=document.querySelector('.cal-wrap aside');a&&a.scrollIntoView({behavior:'smooth',block:'start'})}},
-  'w-new':d=>workoutModal(null,d.date),'w-edit':d=>workoutModal(S.workouts.find(x=>x.id===d.id),null,'log'),'w-del':d=>del('workouts',d.id),
+  'cal-nav':d=>{const m=UI.calMonth;UI.calMonth=new Date(m.getFullYear(),m.getMonth()+(+d.d),1);quietRender();slideIn('.cal-grid',+d.d)},
+  'cal-today':()=>{const t=new Date(),m=UI.calMonth,dir=Math.sign((t.getFullYear()-m.getFullYear())*12+t.getMonth()-m.getMonth());UI.calMonth=new Date(t.getFullYear(),t.getMonth(),1);UI.calSel=today();quietRender();if(dir)slideIn('.cal-grid',dir)},
+  'cal-sel':d=>{const dir=Math.sign(d.k.localeCompare(UI.calSel));UI.calSel=d.k;quietRender();if(dir)slideIn('.cal-wrap aside',dir,8);if(window.innerWidth<1100){const a=document.querySelector('.cal-wrap aside');a&&a.scrollIntoView({behavior:motionOK()?'smooth':'auto',block:'start'})}},
+  'w-new':d=>workoutModal(null,d.date),'w-more':()=>{UI.wWeeks=(UI.wWeeks||6)+8;render()},'w-edit':d=>workoutModal(S.workouts.find(x=>x.id===d.id),null,'log'),'w-del':d=>delUndo('workouts',d.id,'Treino excluído'),
   'w-type':d=>{readDraft();UI.draft.type=d.t;if(d.t==='strength'&&!UI.draft.exercises.length)UI.draft.exercises=[{name:'',sets:[{reps:'',kg:''}]}];renderWorkout()},
   'ex-add':()=>{readDraft();UI.draft.exercises.push({name:'',sets:[{reps:'',kg:''}]});renderWorkout();const ins=$('#sheet').querySelectorAll('[data-k="name"]');ins.length&&ins[ins.length-1].focus()},
   'ex-del':d=>{readDraft();UI.draft.exercises.splice(+d.i,1);renderWorkout()},
@@ -1789,7 +2107,14 @@ const A={
     if(!prev){toast(t?`Nenhum treino anterior chamado "${UI.draft.title}".`:'Nenhum treino de musculação anterior com exercícios.');return}
     UI.draft.exercises=JSON.parse(JSON.stringify(prev.exercises));if(!UI.draft.title)UI.draft.title=prev.title;renderWorkout();toast(`Copiado de ${prev.title||'treino'} (${fmtD(prev.date)})`)},
   'strava-sync':()=>syncStrava(true),
-  'plan-new':()=>planModal(),'plan-edit':d=>planModal((S.plans||[]).find(x=>x.id===d.id)),'plan-del':d=>del('plans',d.id),
+  'notification-settings':()=>notificationModal(),
+  'prepare-installation':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.prepareInstallation(),el,'Acesso preparado por 10 minutos. Agora use Compartilhar → Adicionar à Tela de Início.'),
+  'push-enable':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.enablePush(),el,'Notificações ativadas neste aparelho.'),
+  'push-disable':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.disablePush(),el,'Notificações desativadas neste aparelho.'),
+  'push-test':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.testPush(),el,'Aviso enviado. Confira as notificações do aparelho.'),
+  'cloud-strava-connect':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.authorizeStrava(),el),
+  'cloud-strava-disconnect':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.disconnectStrava(),el,'Strava desconectado.'),
+  'plan-new':()=>planModal(),'plan-edit':d=>planModal((S.plans||[]).find(x=>x.id===d.id)),'plan-del':d=>delUndo('plans',d.id,'Treino recorrente excluído'),
   'plan-log':d=>planLog((S.plans||[]).find(x=>x.id===d.id),d.k),
   'cat-add':()=>{readCatDraft();const used=UI.catDraft.map(c=>+c.c);const c=[1,2,3,4,5,6,7,8].find(i=>!used.includes(i))||1;UI.catDraft.push({id:'c'+uid(),name:'Nova categoria',c});renderSettings()},
   'g-connect':()=>{const L=window.CompassoLocal;if(!L)return;L.google.connect().then(()=>{toast('Google Calendar conectado');if($('#sheet form[data-form="settings"]')){readCatDraft();renderSettings()}}).catch(e=>toast(e.message||'Não foi possível conectar ao Google'))},
@@ -1797,7 +2122,7 @@ const A={
   'lc-import':()=>{const L=window.CompassoLocal;if(!L)return;const i=document.createElement('input');i.type='file';i.accept='.json,application/json';
     i.onchange=async()=>{const f=i.files&&i.files[0];if(!f)return;try{const n=await L.importFile(f);closeModal();toast(`${n} registros importados`)}catch(e){toast(e.message||'Falha ao importar')}};i.click()},
   'theme-toggle':()=>applyTheme(isDark()?'light':'dark'),
-  'lc-signout':()=>{window.CompassoLocal&&window.CompassoLocal.signOut()},
+  'lc-signout':(d,el)=>cloudAction(()=>window.CompassoLocal&&window.CompassoLocal.signOut(),el),
   'lc-reveal':()=>{const L=window.CompassoLocal;L&&L.server&&L.server.reveal().catch(e=>toast(e.message))},
   'lc-backup':()=>{const L=window.CompassoLocal;L&&L.server&&L.server.backupNow().then(f=>{toast(f?'Backup salvo em '+f:'Ainda não há dados para salvar.');rerenderSettings()}).catch(e=>toast(e.message))},
   'sv-authorize':async()=>{const L=window.CompassoLocal;if(!L||!L.server)return;const id=fv('f-svid'),sec=fv('f-svsec'),st=(L.server.info()||{}).strava||{};
@@ -1811,9 +2136,9 @@ document.addEventListener('click',e=>{
   if(e.target===$('#modal'))closeModal();
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').hidden)closeModal()});
-document.addEventListener('change',e=>{const el=e.target;if(el.dataset.change==='ex-sel'){UI.exSel=el.value;render()}
+document.addEventListener('change',e=>{const el=e.target;if(el.dataset.change==='ex-sel'){UI.exSel=el.value;quietRender()}
   const rb=el.closest&&el.closest('[data-rec]');if(rb)syncRec(rb.dataset.rec);if(['f-freq','f-period','f-mode','f-goal'].includes(el.id))syncForms();if(el.id==='f-due'||el.id==='w-date')syncAllRec()});
-document.addEventListener('submit',e=>{
+document.addEventListener('submit',async e=>{
   e.preventDefault();const f=e.target;const k=f.dataset.form;const id=f.dataset.id||uid();const now=new Date().toISOString();
   if(k==='quick-task'||k==='quick-task2'){
     const p=k==='quick-task'?'qt':'qt2';const title=fv(p+'-title');if(!title)return;const cat=fv(p+'-cat');UI.lastCat=cat;
@@ -1822,12 +2147,22 @@ document.addEventListener('submit',e=>{
   }
   if(k==='task'){const old=S.tasks.find(x=>x.id===id)||{};const cat=fv('f-cat');UI.lastCat=cat;
     let due=fv('f-due');let rec=readRec('tr');if(hasRec(rec)){if(!due)due=today();rec.start=due}else rec=null;
-    put('tasks',id,{...strip(old),goalId:fv('f-goal'),goalW:+fv('f-gw')||1,rec,seriesId:old.seriesId||(rec?id:null),title:fv('f-title'),cat,due,prio:+fv('f-prio')||2,notes:fv('f-notes'),done:!!old.done,doneAt:old.doneAt||null,createdAt:old.createdAt||now})}
+    put('tasks',id,{...strip(old),dueTime:fv('f-due-time'),reminderEnabled:!!document.getElementById('f-remind').checked,goalId:fv('f-goal'),goalW:+fv('f-gw')||1,rec,seriesId:old.seriesId||(rec?id:null),title:fv('f-title'),cat,due,prio:+fv('f-prio')||2,notes:fv('f-notes'),done:!!old.done,doneAt:old.doneAt||null,createdAt:old.createdAt||now})}
   if(k==='event'){const old=S.events.find(x=>x.id===id)||{};
-    put('events',id,{title:fv('f-title'),date:fv('f-date'),start:fv('f-start'),end:fv('f-end'),cat:fv('f-cat'),notes:fv('f-notes'),createdAt:old.createdAt||now})}
+    put('events',id,{...strip(old),reminderEnabled:!!document.getElementById('f-remind').checked,reminderMinutes:+fv('f-remind-min'),title:fv('f-title'),date:fv('f-date'),start:fv('f-start'),end:fv('f-end'),cat:fv('f-cat'),notes:fv('f-notes'),createdAt:old.createdAt||now})}
   if(k==='habit'){const old=S.habits.find(x=>x.id===id)||{};
     const hfq=fv('f-freq');let hrec=hfq==='sched'?readRec('hr'):null;if(hrec&&!hrec.start)hrec.start=today();
-    put('habits',id,{name:fv('f-name'),freq:hfq,rec:hrec,target:clamp(+fv('f-target')||1,1,7),cat:fv('f-hcat'),autoW:fv('f-autow'),c:old.c||7,goalId:fv('f-goal'),goalW:+fv('f-gw')||1,goalTarget:+fv('f-gtarget')||null,archived:!!(document.getElementById('f-arch')||{}).checked,order:old.order??S.habits.length,createdAt:old.createdAt||now})}
+    put('habits',id,{...strip(old),reminderEnabled:!!document.getElementById('f-remind').checked,reminderTime:fv('f-remind-time'),name:fv('f-name'),freq:hfq,rec:hrec,target:clamp(+fv('f-target')||1,1,7),cat:fv('f-hcat'),autoW:fv('f-autow'),c:old.c||7,goalId:fv('f-goal'),goalW:+fv('f-gw')||1,goalTarget:+fv('f-gtarget')||null,archived:!!(document.getElementById('f-arch')||{}).checked,order:old.order??S.habits.length,createdAt:old.createdAt||now})}
+  if(k==='notifications'){
+    const checked=id=>!!document.getElementById(id).checked;
+    try{new Intl.DateTimeFormat('pt-BR',{timeZone:fv('n-zone')}).format()}catch{toast('Informe um fuso válido, como America/Sao_Paulo.');return}
+    const notifications={...notificationPrefs(),enabled:checked('n-enabled'),tasks:checked('n-tasks'),habits:checked('n-habits'),events:checked('n-events'),summary:checked('n-summary'),pendingHabits:checked('n-pending'),timeZone:fv('n-zone'),taskLeadMinutes:[+fv('n-task-days')*1440,+fv('n-task-minutes')],taskTime:fv('n-task-time'),eventLeadMinutes:+fv('n-event-minutes'),habitTime:fv('n-habit-time'),summaryTime:fv('n-summary-time'),pendingHabitsTime:fv('n-pending-time')};
+    const button=f.querySelector('button[type="submit"]');button.disabled=true;
+    try {
+      if(!db)throw new Error('not_ready');
+      const settings={...S.settings,notifications};await db.doc('meta/settings').set(settings);S.settings=settings;schedule();toast('Horários dos lembretes salvos.');
+    }catch(e){button.disabled=false;dbFail(e);return}
+  }
   if(k==='goal'){const old=S.goals.find(x=>x.id===id)||{};const tg=fv('f-target');
     const per=fv('f-period')||'none';const cv0=+fv('f-current')||0;const prog={...(old.prog||{})};if(per!=='none')prog[perRange(per).key]=cv0;
     put('goals',id,{mode:fv('f-mode')||'auto',start:fv('f-start')||String(old.start||old.createdAt||now).slice(0,10),title:fv('f-title'),cat:fv('f-cat'),period:per,prog,deadline:per==='none'?fv('f-deadline'):'',current:per==='none'?cv0:(+old.current||0),target:tg===''?null:+tg,unit:fv('f-unit'),notes:fv('f-notes'),done:!!(document.getElementById('f-done')||{}).checked,createdAt:old.createdAt||now})}
@@ -1858,8 +2193,23 @@ const tip=$('#tip');
 function showTip(el,x,y){tip.textContent=el.getAttribute('data-tip');tip.hidden=false;const r=tip.getBoundingClientRect();tip.style.left=clamp(x+12,8,window.innerWidth-r.width-8)+'px';tip.style.top=clamp(y-r.height-12,8,window.innerHeight-r.height-8)+'px'}
 document.addEventListener('pointermove',e=>{const el=e.target.closest&&e.target.closest('[data-tip]');if(el)showTip(el,e.clientX,e.clientY);else tip.hidden=true});
 document.addEventListener('pointerdown',e=>{const el=e.target.closest&&e.target.closest('[data-tip]');if(el&&e.pointerType!=='mouse')showTip(el,e.clientX,e.clientY)});
-let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(drawCharts,150)});
-let tt;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,3200)}
+let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{drawCharts();placeNavInd()},150)});
+// aviso no rodapé; com "act" ganha um botão (ex.: Desfazer) e fica mais tempo na tela
+let tt;function toast(m,act){
+  const t=$('#toast'),was=!t.hidden&&!t.classList.contains('out');clearTimeout(tt);
+  const s=document.createElement('span');s.textContent=m;t.replaceChildren(s);
+  if(act){const b=document.createElement('button');b.type='button';b.className='toast-act';b.textContent=act.label;b.addEventListener('click',()=>{hideToast();act.fn()});t.append(b)}
+  t.classList.remove('out');t.getAnimations().forEach(x=>x.cancel());t.hidden=false;
+  if(motionOK())t.animate(was?[{transform:'translateX(-50%) scale(.97)'},{transform:'translateX(-50%) scale(1)'}]:[{opacity:0,transform:'translate(-50%,16px) scale(.96)'},{opacity:1,transform:'translateX(-50%)'}],{duration:was?180:340,easing:was?EZ:EZ_POP});
+  tt=setTimeout(hideToast,act?6000:3200);
+}
+function hideToast(){
+  const t=$('#toast');clearTimeout(tt);if(t.hidden||t.classList.contains('out'))return;
+  const end=()=>{if(!t.classList.contains('out'))return;t.hidden=true;t.classList.remove('out');t.getAnimations().forEach(x=>x.cancel())};
+  t.classList.add('out');
+  if(!motionOK())return end();
+  t.animate([{opacity:1,transform:'translateX(-50%)'},{opacity:0,transform:'translate(-50%,10px)'}],{duration:180,easing:EZ_IN,fill:'forwards'}).finished.then(end,end);
+}
 
 /* ============ tema ============ */
 const THEMES=[['light','Claro'],['dark','Escuro'],['auto','Automático (segue o Mac)']];
@@ -1877,6 +2227,11 @@ function applyTheme(t){
   schedule();
 }
 
+</script>
+<script src="compasso-ux.js"></script>
+<script src="compasso-motion.js"></script>
+<script src="compasso-interactions.js"></script>
+<script>
 /* ============ boot ============ */
 applyTheme(getTheme());
 window.addEventListener('compasso:status',()=>schedule());

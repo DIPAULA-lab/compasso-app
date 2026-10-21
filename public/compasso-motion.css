@@ -1,0 +1,31 @@
+/* Behavior only: retain every original color, font, icon and component shape. */
+html{scrollbar-gutter:stable}
+@supports not (scrollbar-gutter:stable){html{overflow-y:scroll}}
+
+/* Same completed-title treatment already used by .row.done .t for tasks. */
+.hl.habit-done .hl-t,.agenda .row.habit-done>.main{text-decoration:line-through;color:var(--ink-3)}
+
+/* The animated stroke follows measured text fragments, including wrapped lines. */
+.row .t,.gp .t{background-image:none}
+.just-done .t{text-decoration:line-through}
+.completion-strike-active{position:relative;text-decoration:none!important}
+.completion-strike-overlay{position:absolute;inset:0;pointer-events:none;color:var(--ink-3)}
+.completion-strike-line{position:absolute;height:1.5px;background:currentColor;transform:scaleX(0);transform-origin:left center;pointer-events:none}
+
+/* Paint the native label colors on top of the moving native selection pill.
+   Clipping the text colors to the pill keeps both labels readable throughout. */
+.nav.compasso-nav-motion{isolation:isolate}
+.nav.compasso-nav-motion.has-ind button>span{
+  background-image:linear-gradient(90deg,
+    var(--ink) 0,
+    var(--ink) calc(var(--compasso-pill-left) - var(--compasso-label-left)),
+    var(--bg) calc(var(--compasso-pill-left) - var(--compasso-label-left)),
+    var(--bg) calc(var(--compasso-pill-right) - var(--compasso-label-left)),
+    var(--ink) calc(var(--compasso-pill-right) - var(--compasso-label-left)),
+    var(--ink) 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+@media(forced-colors:active){
+  .nav.compasso-nav-motion.has-ind button>span{background-image:none;-webkit-text-fill-color:currentColor}
+}

@@ -4,6 +4,7 @@ compasso-backup*.json
 *.db
 *.db-wal
 *.db-shm
+.compasso-private/
 
 __pycache__/
 .DS_Store

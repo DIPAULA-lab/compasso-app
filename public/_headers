@@ -1,0 +1,10 @@
+/sw.js
+  Cache-Control: no-cache
+  Service-Worker-Allowed: /
+/config.js
+  Cache-Control: no-store
+/
+  Cache-Control: no-cache
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

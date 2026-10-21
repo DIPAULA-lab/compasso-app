@@ -1,13 +1,15 @@
-/* Configuração do Compasso (reserva).
-   Quando o app roda pelo servidor local (server/compasso.py), o próprio servidor
-   gera o /config.js a partir do banco, e você ajusta tudo em Ajustes → Conexões e dados.
-   Este arquivo só vale se a pasta public/ for servida por outro programa
-   (ex.: python3 -m http.server 8080 -d public): aí os dados ficam no navegador. */
+/* Configuração pública da versão na nuvem.
+   O servidor Python gera outra configuração para a instalação local.
+   Esta chave é publicável; o acesso aos dados é protegido por sessão e RLS. */
 window.COMPASSO_CONFIG = {
-  backend: 'local',          // 'server' (servidor local) · 'local' (localStorage) · 'supabase'
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  backend: 'supabase',
+  supabaseUrl: 'https://givneltvddpmlnakatgp.supabase.co',
+  supabasePublishableKey: "sb_publishable_b2X3ZDWAwoIX7sKBA-vQ8A_UIVWWonA",
+  authAllowSignup: false,
   googleClientId: '',
   googleCalendars: ['primary'],
-  stravaEndpoint: '/api/strava',
+  cloudEndpoint: 'https://givneltvddpmlnakatgp.supabase.co/functions/v1/compasso-cloud',
+  installationEndpoint: 'https://givneltvddpmlnakatgp.supabase.co/functions/v1/compasso-installation',
+  stravaEndpoint: 'https://givneltvddpmlnakatgp.supabase.co/functions/v1/compasso-cloud/strava',
+  googleEnabled: false,
 };
