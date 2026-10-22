@@ -1,0 +1,119 @@
+name: Compasso CI e Pages
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verificacoes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - run: node scripts/verify-ux.mjs
+      - name: Validar servidor local sem iniciar ou acessar dados
+        run: python3 -c "import ast,pathlib; ast.parse(pathlib.Path('server/compasso.py').read_text(encoding='utf-8-sig'))"
+      - name: Validar pacote web
+        run: node scripts/verify-pages.mjs
+
+  preview:
+    name: Previa Pages
+    needs: verify
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && vars.COMPASSO_ENABLE_PREVIEWS == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: preview
+      url: ${{ steps.publish.outputs.deployment-url }}
+    concurrency:
+      group: pages-preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Conferir credencial
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: test -n "$CLOUDFLARE_API_TOKEN"
+      - name: Publicar previa
+        id: publish
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: '38eeed1e13c88c3177cbb6e8a63629a1'
+          wranglerVersion: '4.152.0'
+          command: pages deploy public --project-name=compasso-dipaula --branch=preview-pr-${{ github.event.pull_request.number }} --commit-hash=${{ github.sha }}
+      - name: Confirmar previa
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          DEPLOYMENT_ID: ${{ steps.publish.outputs.pages-deployment-id }}
+          DEPLOYMENT_URL: ${{ steps.publish.outputs.deployment-url }}
+          EXPECTED_ENVIRONMENT: preview
+        run: node scripts/confirm-pages.mjs
+
+  production:
+    name: Producao Pages
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      pull-requests: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: https://compasso-dipaula.pages.dev
+    concurrency:
+      group: compasso-pages-production
+      cancel-in-progress: false
+    steps:
+      - name: Exigir merge de pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          count=$(gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq "[.[] | select(.merged_at != null and .base.ref == \"main\" and .merge_commit_sha == \"$GITHUB_SHA\")] | length" | awk '{s+=$1} END {print s}')
+          test "$count" -gt 0 || { echo 'Publicacao exige merge de PR na main.'; exit 1; }
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')
+          test "$latest" = "$GITHUB_SHA" || { echo 'Execucao antiga: main ja avancou.'; exit 1; }
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Conferir credencial
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: test -n "$CLOUDFLARE_API_TOKEN"
+      - name: Publicar public no projeto existente
+        id: publish
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: '38eeed1e13c88c3177cbb6e8a63629a1'
+          wranglerVersion: '4.152.0'
+          command: pages deploy public --project-name=compasso-dipaula --branch=main --commit-hash=${{ github.sha }}
+      - name: Confirmar deploy e endereco de producao
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          DEPLOYMENT_ID: ${{ steps.publish.outputs.pages-deployment-id }}
+          DEPLOYMENT_URL: https://compasso-dipaula.pages.dev
+          EXPECTED_ENVIRONMENT: production
+        run: node scripts/confirm-pages.mjs
