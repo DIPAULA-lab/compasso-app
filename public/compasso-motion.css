@@ -29,3 +29,9 @@ html{scrollbar-gutter:stable}
 @media(forced-colors:active){
   .nav.compasso-nav-motion.has-ind button>span{background-image:none;-webkit-text-fill-color:currentColor}
 }
+
+/* Approved visual identity retained; only the desktop container width adapts. */
+@media (min-width:901px){
+ main{max-width:none}
+ .side{padding-inline:var(--gut)}
+}

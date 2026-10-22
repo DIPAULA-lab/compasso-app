@@ -143,3 +143,62 @@ const compassoHabitHomeOriginal=vHoje,compassoHabitCalendarOriginal=vCal;
 vHoje=()=>compassoHabitCompletedTitles(compassoHabitHomeOriginal());
 vCal=()=>compassoHabitCompletedTitles(compassoHabitCalendarOriginal());
 document.fonts?.ready.then(()=>requestAnimationFrame(placeNavInd));
+
+/* Approved calendar views: reuse existing cells, agenda and interactions. */
+UI.calMode='month';
+function compassoCalendarRange(mode,key){
+ const selected=pd(key),start=mode==='week'?monOf(selected):selected;
+ return {start,end:addD(start,mode==='week'?6:0)};
+}
+const compassoCalendarMonth=vCal;
+vCal=()=>{
+ const mode=UI.calMode||'month';
+ const template=compassoTemplate(compassoCalendarMonth()),root=template.content;
+ const header=root.querySelector('.vh'),controls=document.createElement('div');
+ controls.className='filters';
+ controls.innerHTML=`<div class="seg" role="group" aria-label="Visualização da agenda">${[['day','Dia'],['week','Semana'],['month','Mês']].map(([value,label])=>`<button data-act="cal-mode" data-mode="${value}" aria-pressed="${mode===value}">${label}</button>`).join('')}</div>`;
+ header.after(controls);
+ if(mode==='month'){
+  // Fill the existing grid row without changing the calendar or panel contents.
+  root.querySelector('.cal-wrap .agenda').style.alignSelf='stretch';
+ }
+ if(mode!=='month'){
+  const {start,end}=compassoCalendarRange(mode,UI.calSel);
+  const year=start.getFullYear()===end.getFullYear()?String(end.getFullYear()):`${start.getFullYear()} / ${end.getFullYear()}`;
+  header.querySelector('h1').textContent=mode==='week'?`${fmtD(dk(start))} – ${fmtD(dk(end))} · ${year}`:`${fmtD(UI.calSel)} · ${year}`;
+  const previous=header.querySelector('[data-act="cal-nav"][data-d="-1"]'),next=header.querySelector('[data-act="cal-nav"][data-d="1"]');
+  previous.setAttribute('aria-label',mode==='week'?'Semana anterior':'Dia anterior');
+  next.setAttribute('aria-label',mode==='week'?'Próxima semana':'Próximo dia');
+  const wrap=root.querySelector('.cal-wrap');
+  if(mode==='day')wrap.replaceWith(wrap.querySelector('.agenda'));
+  else{
+   // In week view the existing day panel follows the calendar at full width.
+   wrap.style.gridTemplateColumns='minmax(0,1fr)';
+   const first=dk(start),last=dk(end);
+   wrap.querySelectorAll('.cday').forEach(day=>{
+    if(day.dataset.k<first||day.dataset.k>last)day.remove();else day.classList.remove('out');
+   });
+  }
+ }
+ return template.innerHTML;
+};
+A['cal-mode']=data=>{
+ if(!['month','week','day'].includes(data.mode)||UI.calMode===data.mode)return;
+ UI.calMode=data.mode;
+ const selected=pd(UI.calSel);UI.calMonth=new Date(selected.getFullYear(),selected.getMonth(),1);
+ quietRender();slideIn(data.mode==='day'?'.agenda':'.cal',1,8);
+};
+const compassoCalendarNav=A['cal-nav'];
+A['cal-nav']=data=>{
+ if(UI.calMode==='month')return compassoCalendarNav(data);
+ const selected=addD(pd(UI.calSel),(UI.calMode==='week'?7:1)*Number(data.d));
+ UI.calSel=dk(selected);UI.calMonth=new Date(selected.getFullYear(),selected.getMonth(),1);
+ quietRender();slideIn(UI.calMode==='day'?'.agenda':'.cal-grid',Number(data.d),8);
+};
+const compassoCalendarSelect=A['cal-sel'];
+A['cal-sel']=data=>{
+ if(UI.calMode==='week'){
+  const selected=pd(data.k);UI.calMonth=new Date(selected.getFullYear(),selected.getMonth(),1);
+ }
+ compassoCalendarSelect(data);
+};
