@@ -35,3 +35,21 @@ html{scrollbar-gutter:stable}
  main{max-width:none}
  .side{padding-inline:var(--gut)}
 }
+
+/* Layout geometry only. Keep all existing typography, colors and controls. */
+/* Match the existing 14px card gap, including compact/mobile layouts. */
+main[data-area="stats"]>.card+.card{margin-block-start:14px}
+@media (min-width:1101px) and (min-height:900px){
+ main[data-space-balance="calendar"] .cal-wrap>.cal{
+  height:var(--balanced-calendar-height);display:flex;flex-direction:column;
+ }
+ main[data-space-balance="calendar"] .cal-grid{
+  flex:1;min-height:0;grid-auto-rows:minmax(min-content,1fr);
+ }
+ main[data-space-balance="habits"] .grid3>.goal{
+  min-height:var(--balanced-goal-height);justify-content:space-between;
+ }
+ main[data-space-balance="habits"] .hab-table>.hab:has(.name){
+  min-height:var(--balanced-habit-height);
+ }
+}

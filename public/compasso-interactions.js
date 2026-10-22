@@ -202,3 +202,45 @@ A['cal-sel']=data=>{
  }
  compassoCalendarSelect(data);
 };
+
+/* Approved: balance sparse screens vertically without scaling their contents. */
+function compassoLayoutTop(element){
+ let top=0;for(let node=element;node;node=node.offsetParent)top+=node.offsetTop;
+ return top;
+}
+function compassoBalanceSpace(){
+ const main=$('#main');
+ main.removeAttribute('data-space-balance');
+ main.style.removeProperty('--balanced-calendar-height');
+ main.style.removeProperty('--balanced-goal-height');
+ main.style.removeProperty('--balanced-habit-height');
+ if(!matchMedia('(min-width:1101px) and (min-height:900px)').matches)return;
+ if(UI.view==='calendario'&&(UI.calMode||'month')==='month'){
+  const wrap=main.querySelector('.cal-wrap');if(!wrap)return;
+  const available=Math.max(0,innerHeight-compassoLayoutTop(wrap)-parseFloat(getComputedStyle(main).paddingBottom)-8);
+  const natural=wrap.querySelector('.cal').offsetHeight;
+  main.dataset.spaceBalance='calendar';
+  main.style.setProperty('--balanced-calendar-height',Math.max(natural,available)+'px');
+ }else if(UI.view==='habitos'){
+  const count=activeHabits().length;
+  if(count>0&&count<=6&&S.goals.length<=3){
+   const rows=[...main.querySelectorAll('.hab-table>.hab:has(.name)')];
+   const goals=[...main.querySelectorAll('.grid3>.goal')];
+   const naturalGoal=goals.length?Math.max(...goals.map(goal=>goal.offsetHeight)):0;
+   const naturalRow=Math.min(...rows.map(row=>row.offsetHeight));
+   const extra=Math.max(0,innerHeight-compassoLayoutTop(main)-main.offsetHeight-8);
+   const goalGrowth=goals.length?Math.min(extra*.3,Math.max(0,Math.min(360,innerHeight*.25)-naturalGoal)):0;
+   const rowGrowth=Math.min(Math.max(0,144-naturalRow),(extra-goalGrowth)/count);
+   main.dataset.spaceBalance='habits';
+   main.style.setProperty('--balanced-goal-height',(naturalGoal+goalGrowth)+'px');
+   main.style.setProperty('--balanced-habit-height',(naturalRow+rowGrowth)+'px');
+  }
+ }
+}
+const compassoSpaceRender=render;
+render=()=>{compassoSpaceRender();compassoBalanceSpace();};
+let compassoSpaceFrame=0;
+function compassoScheduleSpace(){cancelAnimationFrame(compassoSpaceFrame);compassoSpaceFrame=requestAnimationFrame(compassoBalanceSpace);}
+window.addEventListener('resize',compassoScheduleSpace);
+new ResizeObserver(compassoScheduleSpace).observe(document.querySelector('.side'));
+document.fonts?.ready.then(compassoScheduleSpace);
