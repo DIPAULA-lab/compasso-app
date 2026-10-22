@@ -1,5 +1,9 @@
 # Compasso
 
+> **Versão web:** publicada em https://compasso-dipaula.pages.dev, com backend Supabase.
+> O fluxo de desenvolvimento, revisão e publicação web está em [docs/DEPLOY.md](docs/DEPLOY.md).
+> As instruções abaixo continuam válidas para a versão local Python/SQLite.
+
 Hábitos, metas, tarefas, agenda e treinos num só lugar, rodando **no seu computador**. Seus dados ficam num banco local (SQLite) na sua máquina: nada vai para a nuvem e ninguém mais tem acesso. Funciona no **Mac** e no **Windows**.
 
 Cada pessoa instala a sua própria cópia. O app começa vazio e você monta do seu jeito: suas categorias, seus hábitos, suas metas.
