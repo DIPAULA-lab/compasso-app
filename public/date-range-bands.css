@@ -1,0 +1,11 @@
+/* Same .ci palette, text, padding and radius; only the requested span is new. */
+.has-date-ranges>.range-band{
+ position:relative;z-index:1;align-self:start;min-width:0;margin-inline:6px;
+ height:20px;box-sizing:border-box;border:0;text-align:left;font-family:inherit;cursor:pointer;
+ background:color-mix(in srgb,var(--cc,var(--ink-3)) 16%,var(--surface));
+}
+.has-date-ranges>.range-band.range-before{margin-left:0;border-top-left-radius:0;border-bottom-left-radius:0}
+.has-date-ranges>.range-band.range-after{margin-right:0;border-top-right-radius:0;border-bottom-right-radius:0}
+.range-space{display:block;flex:none;pointer-events:none}
+.has-date-ranges>.range-band:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+@media(max-width:600px){.has-date-ranges>.range-band{margin-inline:2px}.has-date-ranges>.range-before{margin-left:0}.has-date-ranges>.range-after{margin-right:0}}

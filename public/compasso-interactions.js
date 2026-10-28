@@ -113,8 +113,9 @@ agendaDay=(key,label)=>{
  t.content.querySelectorAll('.it').forEach(row=>{
   if(!row.querySelector('[data-act="event-edit"],a[href]'))return;
   const source=row.querySelector('.src');if(!source)return;
-  const badge=compassoTemplate(dueTag({due:key}).replace('atrasada','atrasado')).content.firstElementChild;
-  if(badge){badge.classList.add('sm');badge.dataset.deadline=key;badge.setAttribute('aria-label','Prazo do evento: '+fmtD(key));source.append(' · ',badge);}
+  const event=S.events.find(e=>e.id===row.querySelector('[data-act="event-edit"]')?.dataset.id);const deadline=event?.endDate||event?.date||key;
+  const badge=compassoTemplate(dueTag({due:deadline}).replace('atrasada','atrasado')).content.firstElementChild;
+  if(badge){badge.classList.add('sm');badge.dataset.deadline=deadline;badge.setAttribute('aria-label','Prazo do evento: '+fmtD(deadline));source.append(' · ',badge);}
  });return t.innerHTML;
 };
 function compassoEventTimeBadges(html){
