@@ -934,7 +934,7 @@ const gCur=g=>isPer(g)?(+((g.prog||{})[perRange(g.period).key])||0):(+g.current|
 const gDeadline=g=>isPer(g)?perRange(g.period).end:g.deadline;
 
 /* workout plans */
-function planDone(p,key){return S.workouts.some(w=>w.date===key&&(w.planId===p.id||(!w.planId&&w.type===p.type)))}
+function planDone(p,key){return S.workouts.some(w=>calendarOn(w,key)&&(w.planId===p.id||(!w.planId&&w.type===p.type)))}
 const activePlans=()=>(S.plans||[]).filter(p=>p.active!==false&&hasRec(p.rec));
 const plannedOn=key=>activePlans().filter(p=>occursOn(p.rec,key)&&!planDone(p,key));
 const taskGhosts=key=>S.tasks.filter(x=>!x.done&&hasRec(x.rec)&&x.due&&key>x.due&&occursOn(x.rec,key));
@@ -1041,6 +1041,14 @@ function dayPct(key){
 const dueToday=()=>activeHabits().filter(h=>doneOn(h.id,today())||(h.freq==='weekly'?weekCount(h,monOf(new Date()))<(h.target||1):isSched(h,today())));
 const habFreqLabel=x=>x.freq==='weekly'?`${x.target||1}× por semana`:x.freq==='sched'?recLabel(x.rec):'diário';
 
+// Inclusive calendar ranges; due remains the final task deadline.
+const calendarOn=(x,key,task=false)=>{const end=task?x.due:(x.endDate||x.date);const start=task?(x.startDate||x.due):x.date;return !!start&&start<=key&&key<=end};
+const rangeLabel=(start,end)=>start&&end&&start!==end?`${fmtD(start)} – ${fmtD(end)}`:'';
+function rangeFields(prefix,start,end){return `<label class="chip"><input type="checkbox" id="${prefix}-multi" data-range="${prefix}" ${end&&start!==end?'checked':''}> Mais de um dia</label><div class="frow" id="${prefix}-range" ${end&&start!==end?'':'hidden'}><div class="field"><label for="${prefix}-until">Até (inclusive)</label><input type="date" id="${prefix}-until" value="${esc(end||start||'')}" min="${esc(start||'')}"></div></div>`}
+function syncRange(prefix){const multi=document.getElementById(prefix+'-multi'),end=document.getElementById(prefix+'-until'),start=document.getElementById(prefix);if(!multi||!end||!start)return;document.getElementById(prefix+'-range').hidden=!multi.checked;end.required=multi.checked;start.required=multi.checked||prefix!=='f-due';end.min=start.value;end.setCustomValidity(multi.checked&&end.value<start.value?'A data final deve ser igual ou posterior à inicial.':'')}
+const rangeEnd=prefix=>document.getElementById(prefix+'-multi')?.checked?fv(prefix+'-until'):'';
+document.addEventListener('change',e=>{for(const prefix of ['f-due','f-date','w-date'])if(e.target.id.startsWith(prefix))syncRange(prefix)});
+
 /* ============ tasks ============ */
 function taskBuckets(list){
   const t=today(),n7=dk(addD(new Date(),7));
@@ -1054,6 +1062,7 @@ const dueLvl=k=>{const d=daysBetween(today(),k);return d<=5?'red':d<=7?'yellow':
 const dueD=k=>{const d=pd(k);return `${pad(d.getDate())} ${MES[d.getMonth()]}`};
 function dueTag(x){
   if(!x.due)return '';
+  if(x.startDate&&x.startDate!==x.due)return `<span class="${x.done?'tag':'due due-'+dueLvl(x.due)}">${tn(rangeLabel(x.startDate,x.due))}</span>`;
   if(x.done)return `<span class="tag">${tn(fmtD(x.due))}</span>`;
   const d=daysBetween(today(),x.due);
   return `<span class="due due-${dueLvl(x.due)}">${tn(d<0?`atrasada · ${dueD(x.due)}`:d===0?'hoje':d===1?'amanhã':dueD(x.due))}</span>`;
@@ -1073,7 +1082,7 @@ function toggleTask(id){
   const upd={...strip(x),done,doneAt:done?now:null};
   if(done&&hasRec(x.rec)&&!x.spawnedId){
     const base=x.due||today();const nx=nextOcc({...x.rec,start:x.rec.start||base},base);
-    if(nx){const nid=uid();upd.spawnedId=nid;put('tasks',nid,{...strip(x),done:false,doneAt:null,due:nx,spawnedId:null,createdAt:now,seriesId:x.seriesId||x.id});msgs.push(`próxima: ${fmtD(nx)}`)}
+    if(nx){const nid=uid();upd.spawnedId=nid;put('tasks',nid,{...strip(x),done:false,doneAt:null,due:nx,startDate:x.startDate?dk(addD(pd(nx),-daysBetween(x.startDate,x.due))):'',spawnedId:null,createdAt:now,seriesId:x.seriesId||x.id});msgs.push(`próxima: ${fmtD(nx)}`)}
   }
   if(!done&&x.spawnedId){const sp=S.tasks.find(t=>t.id===x.spawnedId);if(sp&&!sp.done)del('tasks',sp.id);upd.spawnedId=null}
   put('tasks',id,upd);
@@ -1249,7 +1258,7 @@ function vHoje(){
   const mAb=MES[t.getMonth()];
   const kmTile=`<button class="card w-tile km-tile" data-act="nav" data-v="treinos" title="${runsM} corrida${runsM===1?'':'s'} em ${MESF[t.getMonth()].toLowerCase()}"><h2 class="tile-t">Corridas em ${mAb.charAt(0).toUpperCase()+mAb.slice(1)}</h2><div class="km-v"><b>${nf(km,1)}</b> Km</div></button>`;
   const weekTile=`<section class="card w-tile week-tile" title="${ww.length} de ${weekTarget()} treinos nesta semana"><h2 class="tile-t">Treinos na Semana</h2>
-    <div class="wkdays">${[...Array(7)].map((_,i)=>{const k=dk(addD(mon,i));const on=S.workouts.some(w=>w.date===k);return `<div class="${k===tk?'td':''}"><i class="${on?'on':''}"></i><span>${DOW[i][0].toUpperCase()}</span></div>`}).join('')}</div></section>`;
+    <div class="wkdays">${[...Array(7)].map((_,i)=>{const k=dk(addD(mon,i));const on=S.workouts.some(w=>calendarOn(w,k));return `<div class="${k===tk?'td':''}"><i class="${on?'on':''}"></i><span>${DOW[i][0].toUpperCase()}</span></div>`}).join('')}</div></section>`;
   h+=`<div class="bento">${rings}${kmTile}${weekTile}</div>`;
   h+=goalsPanel();
   h+=`<div class="grid2 home-mid">${habitsByCat()}${tasksByCat(open)}</div>`;
@@ -1323,7 +1332,7 @@ function weekStrip(){
     h+=`<div class="strip">`;
     for(let i=0;i<7;i++){
       const d=addD(start,wk*7+i),k=dk(d);const past=k<tk;
-      const g=gcalFor(k),ev=S.events.filter(e=>e.date===k),wo=S.workouts.filter(w=>w.date===k),ts=S.tasks.filter(x=>x.due===k&&(!x.done||past)),pl=plannedOn(k),tg=past?[]:taskGhosts(k);
+      const g=gcalFor(k),ev=S.events.filter(e=>calendarOn(e,k)),wo=S.workouts.filter(w=>calendarOn(w,k)),ts=S.tasks.filter(x=>calendarOn(x,k,true)&&(!x.done||past)),pl=plannedOn(k),tg=past?[]:taskGhosts(k);
       const p=k<=tk?dayPct(k):null;
       h+=`<div class="sd ${k===tk?'today':''} ${past?'past':''}"><button class="sd-h" data-act="strip-day" data-k="${k}"><span>${DOW[i]}</span><b>${d.getDate()}</b>${d.getDate()===1||(wk===0&&i===0)?`<span>${MES[d.getMonth()]}</span>`:''}</button>
         <div class="sd-b">
@@ -1343,14 +1352,14 @@ function weekStrip(){
 function agendaItems(key){
   const items=[];
   gcalFor(key).forEach(e=>items.push({tm:e.allDay?'dia':e.time,title:e.title,cc:'var(--c1)',src:'Google',link:e.link,end:e.endTime}));
-  S.events.filter(e=>e.date===key).forEach(e=>items.push({tm:e.start||'dia',title:e.title,cc:cv(catOf(e.cat).c),src:catOf(e.cat).name,act:'event-edit',id:e.id,end:e.end}));
-  S.workouts.filter(w=>w.date===key).forEach(w=>items.push({tm:w.startTime||'',title:w.title||WT[w.type].n,cc:cv(WT[w.type].c),src:WT[w.type].n,act:'w-edit',id:w.id}));
+  S.events.filter(e=>calendarOn(e,key)).forEach(e=>items.push({tm:e.start||'dia',title:e.title,cc:cv(catOf(e.cat).c),src:[catOf(e.cat).name,rangeLabel(e.date,e.endDate)].filter(Boolean).join(' · '),act:'event-edit',id:e.id,end:e.end}));
+  S.workouts.filter(w=>calendarOn(w,key)).forEach(w=>items.push({tm:w.startTime||'',title:w.title||WT[w.type].n,cc:cv(WT[w.type].c),src:[WT[w.type].n,rangeLabel(w.date,w.endDate)].filter(Boolean).join(' · '),act:'w-edit',id:w.id}));
   plannedOn(key).forEach(p=>items.push({tm:'',title:p.title||WT[p.type].n,cc:cv(WT[p.type].c),src:key<today()?'Treino não feito · registrar':'Treino planejado · registrar',act:'plan-log',id:p.id,plan:1}));
   items.sort((a,b)=>(a.tm==='dia'?'':a.tm||'99').localeCompare(b.tm==='dia'?'':b.tm||'99'));
   return items;
 }
 function agendaDay(key,label){
-  const it=agendaItems(key);const tasks=[...S.tasks.filter(x=>x.due===key),...(key>=today()?taskGhosts(key):[])];
+  const it=agendaItems(key);const tasks=[...S.tasks.filter(x=>calendarOn(x,key,true)),...(key>=today()?taskGhosts(key):[])];
   let h=`<div class="group-h">${label} <span class="mono">${fmtD(key)}</span></div>`;
   if(!it.length&&!tasks.length)return h+`<div class="muted small" style="padding:6px 0">Nada agendado.</div>`;
   h+=it.map(x=>`<div class="it"><span class="tm">${esc(x.tm)}</span><span class="bar" style="--cc:${x.cc}"></span><div style="min-width:0;flex:1">
@@ -1518,15 +1527,15 @@ function vCal(){
     const d=addD(gs,i),k=dk(d);const out=d.getMonth()!==m.getMonth();
     const items=[];
     gcalFor(k).forEach(e=>items.push(`<span class="ci g" title="${esc(e.title)}">${e.time?`<span class="mono">${e.time}</span> `:''}${esc(e.title)}</span>`));
-    S.events.filter(e=>e.date===k).forEach(e=>items.push(`<span class="ci" style="--cc:${cv(catOf(e.cat).c)}">${e.start?`<span class="mono">${esc(e.start)}</span> `:''}${esc(e.title)}</span>`));
-    S.workouts.filter(w=>w.date===k).forEach(w=>items.push(`<span class="ci" style="--cc:${cv(WT[w.type].c)}">${esc(w.title||WT[w.type].n)}</span>`));
+    S.events.filter(e=>calendarOn(e,k)).forEach(e=>items.push(`<span ${e.endDate>e.date?'data-range-item="event"':''} class="ci" style="--cc:${cv(catOf(e.cat).c)}">${e.start?`<span class="mono">${esc(e.start)}</span> `:''}${esc(e.title)}</span>`));
+    S.workouts.filter(w=>calendarOn(w,k)).forEach(w=>items.push(`<span ${w.endDate>w.date?'data-range-item="workout"':''} class="ci" style="--cc:${cv(WT[w.type].c)}">${esc(w.title||WT[w.type].n)}</span>`));
     plannedOn(k).forEach(p=>items.push(`<span class="ci plan ${k<today()?'missed':''}" style="--cc:${cv(WT[p.type].c)}">${esc(p.title||WT[p.type].n)}</span>`));
-    S.tasks.filter(x=>x.due===k).forEach(x=>items.push(`<span class="ci task ${x.done?'ok':''}" style="--cc:${cv(catOf(x.cat).c)}">${esc(x.title)}</span>`));
+    S.tasks.filter(x=>calendarOn(x,k,true)).forEach(x=>items.push(`<span ${x.startDate&&x.due>x.startDate?'data-range-item="task"':''} class="ci task ${x.done?'ok':''}" style="--cc:${cv(catOf(x.cat).c)}">${esc(x.title)}</span>`));
     if(k>=today())taskGhosts(k).forEach(x=>items.push(`<span class="ci task ghost" style="--cc:${cv(catOf(x.cat).c)}">↻ ${esc(x.title)}</span>`));
-    const dots=[...gcalFor(k).map(()=>'var(--c1)'),...S.events.filter(e=>e.date===k).map(e=>cv(catOf(e.cat).c)),...S.workouts.filter(w=>w.date===k).map(w=>cv(WT[w.type].c)),...plannedOn(k).map(p=>cv(WT[p.type].c)),...S.tasks.filter(x=>x.due===k&&!x.done).map(x=>cv(catOf(x.cat).c))].slice(0,6);
+    const dots=[...gcalFor(k).map(()=>'var(--c1)'),...S.events.filter(e=>calendarOn(e,k)).map(e=>cv(catOf(e.cat).c)),...S.workouts.filter(w=>calendarOn(w,k)).map(w=>cv(WT[w.type].c)),...plannedOn(k).map(p=>cv(WT[p.type].c)),...S.tasks.filter(x=>calendarOn(x,k,true)&&!x.done).map(x=>cv(catOf(x.cat).c))].slice(0,6);
     const p=k<=today()?dayPct(k):null;
     g+=`<button class="cday ${out?'out':''} ${k===today()?'today':''} ${k===UI.calSel?'sel':''}" data-act="cal-sel" data-k="${k}" aria-label="${fmtD(k)}">
-      <span class="dn">${d.getDate()}</span>${items.slice(0,3).join('')}${items.length>3?`<span class="more">+${items.length-3}</span>`:''}
+      <span class="dn">${d.getDate()}</span>${items.join('')}${items.length>3?`<span class="more">+${items.length-3}</span>`:''}
       <span class="dots">${dots.map(c=>`<i style="--cc:${c}"></i>`).join('')}</span>
       ${p!=null?`<span class="hbar" data-tip="Hábitos feitos no dia: ${Math.round(p*100)}%"><i style="width:${p*100}%"></i></span>`:''}</button>`;
   }
@@ -1547,7 +1556,7 @@ function wCard(w){
   return `<div class="wk-card"><div class="wk-date"><b>${d.getDate()}</b><span>${MES[d.getMonth()]}</span></div>
     <div style="flex:1;min-width:0"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="wk-type"><i style="background:${cv(t.c)}"></i>${w.type==='other'&&w.sport?esc(w.sport):t.n}</span>${w.source==='strava'?'<span class="tag">Strava</span>':''}${w.planId&&(S.plans||[]).some(p=>p.id===w.planId)?'<span class="tag rec">↻ programa</span>':''}</div>
     <button class="t" style="background:none;border:0;padding:0;text-align:left;font-weight:600;font-size:15px;margin-top:2px" data-act="w-edit" data-id="${w.id}">${esc(w.title||t.n)}</button>
-    ${wSummary(w)}${w.notes?`<div class="muted small" style="margin-top:4px">${esc(w.notes)}</div>`:''}</div></div>`;
+    ${w.endDate?`<div class="src">${rangeLabel(w.date,w.endDate)}</div>`:''}${wSummary(w)}${w.notes?`<div class="muted small" style="margin-top:4px">${esc(w.notes)}</div>`:''}</div></div>`;
 }
 function plansCard(){
   const ps=[...(S.plans||[])].sort((a,b)=>(a.active===false)-(b.active===false)||String(a.createdAt).localeCompare(String(b.createdAt)));
@@ -1755,8 +1764,9 @@ function taskModal(x,date,goalId,categoryId){
   openModal(`<h2>${x.id?'Editar tarefa':'Nova tarefa'}</h2><form class="form" data-form="task" data-id="${x.id||''}">
    <div class="field"><label for="f-title">Tarefa</label><input type="text" id="f-title" required value="${esc(x.title)}"></div>
    <div class="frow"><div class="field"><label for="f-cat">Categoria</label><select id="f-cat">${catOptions(x.cat)}</select></div>
-   <div class="field"><label for="f-due">Prazo</label><input type="date" id="f-due" value="${esc(x.due||'')}"></div>
+   <div class="field"><label for="f-due">Prazo / início</label><input type="date" id="f-due" value="${esc(x.startDate||x.due||'')}"></div>
    <div class="field"><label for="f-prio">Prioridade</label><select id="f-prio">${[1,2,3].map(p=>`<option value="${p}" ${+x.prio===p?'selected':''}>${PRIO[p]}</option>`).join('')}</select></div></div>
+   ${rangeFields('f-due',x.startDate||x.due,x.startDate?x.due:'')}
    <details class="more-opts" ${x.dueTime||x.goalId||hasRec(x.rec)||x.notes?'open':''}><summary>Mais opções <span>horário, lembrete, meta, repetição e notas</span></summary><div class="more-body">
    <div class="frow"><div class="field"><label for="f-due-time">Horário do prazo (opcional)</label><input type="time" id="f-due-time" value="${esc(x.dueTime||'')}"><span class="muted small">Sem horário: ${esc(notificationPrefs().taskTime)}.</span></div><label class="chip"><input type="checkbox" id="f-remind" ${x.reminderEnabled!==false?'checked':''}> Lembrar desta tarefa</label></div>
    <div class="frow"><div class="field"><label for="f-goal">Faz parte da meta</label><select id="f-goal">${goalOptions(x.goalId)}</select></div>
@@ -1772,6 +1782,7 @@ function eventModal(e,date){
    <div class="frow"><div class="field"><label for="f-date">Data</label><input type="date" id="f-date" required value="${esc(e.date)}"></div>
    <div class="field"><label for="f-start">Início</label><input type="time" id="f-start" value="${esc(e.start||'')}"></div>
    <div class="field"><label for="f-end">Fim</label><input type="time" id="f-end" value="${esc(e.end||'')}"></div></div>
+   ${rangeFields('f-date',e.date,e.endDate)}
    <div class="field"><label for="f-cat">Categoria</label><select id="f-cat">${catOptions(e.cat)}</select></div>
    <div class="field"><label for="f-notes">Notas</label><textarea id="f-notes">${esc(e.notes||'')}</textarea></div>
    <div class="frow"><label class="chip"><input type="checkbox" id="f-remind" ${e.reminderEnabled!==false?'checked':''}> Lembrar deste compromisso</label><div class="field"><label for="f-remind-min">Avisar quantos minutos antes?</label><input type="number" min="0" max="10080" id="f-remind-min" value="${e.reminderMinutes??notificationPrefs().eventLeadMinutes}"></div></div>
@@ -1937,6 +1948,7 @@ function renderWorkout(){
    <div class="frow"><div class="field"><label for="w-title">Nome</label><input type="text" id="w-title" list="w-titles" value="${esc(w.title||'')}" placeholder="${w.type==='strength'?'Ex.: Push A':w.type==='run'?'Ex.: Rodagem leve':'Ex.: Futebol'}"></div>
    ${plan?'':`<div class="field"><label for="w-date">Data</label><input type="date" id="w-date" value="${esc(w.date)}"></div>`}
    <div class="field"><label for="w-dur">Duração (min)</label><input type="number" id="w-dur" min="0" value="${w.durMin||''}"></div></div>
+   ${plan?'':rangeFields('w-date',w.date,w.endDate)}
    <datalist id="w-titles">${titles.map(t=>`<option value="${esc(t)}">`).join('')}</datalist><datalist id="ex-names">${exNames.map(t=>`<option value="${esc(t)}">`).join('')}</datalist>`;
   if(strava)h+=`<div class="banner">Importado do Strava${w.calories?` · ${w.calories} kcal`:''}${w.effort?` · esforço relativo ${w.effort}`:''}. Você pode adicionar exercícios e notas.</div>`;
   if(w.type==='run'){
@@ -1958,7 +1970,7 @@ function renderWorkout(){
 }
 function readDraft(){
   const w=UI.draft;if(!w)return;
-  w.title=fv('w-title');if(document.getElementById('w-date'))w.date=fv('w-date')||today();
+  w.endDate=rangeEnd('w-date');w.title=fv('w-title');if(document.getElementById('w-date'))w.date=fv('w-date')||today();
   if(document.getElementById('wr-freq'))w.rec=readRec('wr');const ac=document.getElementById('w-active');if(ac)w.active=ac.checked;w.durMin=+fv('w-dur')||0;w.notes=fv('w-notes');
   if(document.getElementById('w-km')){w.km=+fv('w-km')||0;w.timeSec=parseTime(fv('w-time'))}
   $('#sheet').querySelectorAll('[data-ex]').forEach(el=>{const i=+el.dataset.ex,k=el.dataset.k;const e=w.exercises[i];if(!e)return;
@@ -2141,16 +2153,17 @@ document.addEventListener('change',e=>{const el=e.target;if(el.dataset.change===
 document.addEventListener('submit',async e=>{
   if(e.target.dataset.form==='category'){e.preventDefault();saveCategory();return;}
   e.preventDefault();const f=e.target;const k=f.dataset.form;const id=f.dataset.id||uid();const now=new Date().toISOString();
+  for(const prefix of ['f-due','f-date','w-date']){syncRange(prefix);const input=document.getElementById(prefix+'-until');if(input&&!input.reportValidity())return;}
   if(k==='quick-task'||k==='quick-task2'){
     const p=k==='quick-task'?'qt':'qt2';const title=fv(p+'-title');if(!title)return;const cat=fv(p+'-cat');UI.lastCat=cat;
     put('tasks',uid(),{title,cat,due:k==='quick-task'?fv('qt-due'):fv('qt2-due'),prio:k==='quick-task'?2:+fv('qt2-prio')||2,done:false,doneAt:null,createdAt:now,notes:''});
     document.getElementById(p+'-title').value='';document.getElementById(p+'-title').focus();return;
   }
   if(k==='task'){const old=S.tasks.find(x=>x.id===id)||{};const cat=fv('f-cat');UI.lastCat=cat;
-    let due=fv('f-due');let rec=readRec('tr');if(hasRec(rec)){if(!due)due=today();rec.start=due}else rec=null;
-    put('tasks',id,{...strip(old),dueTime:fv('f-due-time'),reminderEnabled:!!document.getElementById('f-remind').checked,goalId:fv('f-goal'),goalW:+fv('f-gw')||1,rec,seriesId:old.seriesId||(rec?id:null),title:fv('f-title'),cat,due,prio:+fv('f-prio')||2,notes:fv('f-notes'),done:!!old.done,doneAt:old.doneAt||null,createdAt:old.createdAt||now})}
+    const startDate=rangeEnd('f-due')?fv('f-due'):'';let due=rangeEnd('f-due')||fv('f-due');let rec=readRec('tr');if(hasRec(rec)){if(!due)due=today();rec.start=due}else rec=null;
+    put('tasks',id,{...strip(old),startDate,dueTime:fv('f-due-time'),reminderEnabled:!!document.getElementById('f-remind').checked,goalId:fv('f-goal'),goalW:+fv('f-gw')||1,rec,seriesId:old.seriesId||(rec?id:null),title:fv('f-title'),cat,due,prio:+fv('f-prio')||2,notes:fv('f-notes'),done:!!old.done,doneAt:old.doneAt||null,createdAt:old.createdAt||now})}
   if(k==='event'){const old=S.events.find(x=>x.id===id)||{};
-    put('events',id,{...strip(old),reminderEnabled:!!document.getElementById('f-remind').checked,reminderMinutes:+fv('f-remind-min'),title:fv('f-title'),date:fv('f-date'),start:fv('f-start'),end:fv('f-end'),cat:fv('f-cat'),notes:fv('f-notes'),createdAt:old.createdAt||now})}
+    put('events',id,{...strip(old),reminderEnabled:!!document.getElementById('f-remind').checked,reminderMinutes:+fv('f-remind-min'),title:fv('f-title'),date:fv('f-date'),endDate:rangeEnd('f-date'),start:fv('f-start'),end:fv('f-end'),cat:fv('f-cat'),notes:fv('f-notes'),createdAt:old.createdAt||now})}
   if(k==='habit'){const old=S.habits.find(x=>x.id===id)||{};
     const hfq=fv('f-freq');let hrec=hfq==='sched'?readRec('hr'):null;if(hrec&&!hrec.start)hrec.start=today();
     put('habits',id,{...strip(old),reminderEnabled:!!document.getElementById('f-remind').checked,reminderTime:fv('f-remind-time'),name:fv('f-name'),freq:hfq,rec:hrec,target:clamp(+fv('f-target')||1,1,7),cat:fv('f-hcat'),autoW:fv('f-autow'),c:old.c||7,goalId:fv('f-goal'),goalW:+fv('f-gw')||1,goalTarget:+fv('f-gtarget')||null,archived:!!(document.getElementById('f-arch')||{}).checked,order:old.order??S.habits.length,createdAt:old.createdAt||now})}
@@ -2178,6 +2191,7 @@ document.addEventListener('submit',async e=>{
       closeModal();return;
     }
     let planId=w.planId||null;
+    if(w.endDate&&hasRec(w.rec)){toast('Para um treino de vários dias, selecione Não repete.');return}
     if(!w.id&&!planId&&hasRec(w.rec)){const r={...w.rec,start:w.rec.start||w.date};planId=uid();
       put('plans',planId,{type:w.type,title:w.title||WT[w.type].n,exercises:exs,durMin:w.durMin||0,km:+w.km||0,timeSec:w.timeSec||0,notes:'',rec:r,active:true,createdAt:now});
       if(w.date>today()||!occursOn(r,w.date)){toast(`Treino recorrente criado · ${recLabel(r)}`);closeModal();return}
@@ -2231,7 +2245,7 @@ function applyTheme(t){
 </script>
 <script src="compasso-ux.js"></script>
 <script src="compasso-motion.js"></script>
-<script src="compasso-interactions.js"></script>
+<script src="compasso-interactions.js"></script><script src="date-range-bands.js"></script><link rel="stylesheet" href="date-range-bands.css">
 <script>
 /* ============ boot ============ */
 applyTheme(getTheme());
