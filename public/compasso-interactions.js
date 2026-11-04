@@ -171,7 +171,7 @@ vCal=()=>{
   previous.setAttribute('aria-label',mode==='week'?'Semana anterior':'Dia anterior');
   next.setAttribute('aria-label',mode==='week'?'Próxima semana':'Próximo dia');
   const wrap=root.querySelector('.cal-wrap');
-  if(mode==='day')wrap.replaceWith(wrap.querySelector('.agenda'));
+  if(mode==='day')wrap.replaceWith(compassoTemplate(dayPlanner(UI.calSel,{inAgenda:true})).content);
   else{
    // In week view the existing day panel follows the calendar at full width.
    wrap.style.gridTemplateColumns='minmax(0,1fr)';

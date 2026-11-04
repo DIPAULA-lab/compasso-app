@@ -8,6 +8,8 @@ A prévia aprovada foi integrada em 21/10/2026. A identidade visual existente pe
 - `public/compasso-interactions.js`: navegação, indicador, conclusão de hábitos/tarefas, cancelamento e desfazer, com os mesmos comportamentos entre telas.
 - `public/compasso-motion.css`: ajustes de comportamento usando a paleta, fontes e componentes existentes.
 - `public/compasso-ux.js`: organização dos componentes, atalhos, período dos mapas e foco dos formulários.
+- `public/compasso-day.js` e `.css`: planejador do dia (Início e modo Dia da Agenda), com navegação entre dias e detalhes na própria linha.
+- `public/compasso-tasks.js` e `.css`: captura em uma linha, menu de prazo e prioridade na pílula, reagendar em lote e arrastar. Grava só nos campos existentes da tarefa.
 
 Os helpers são carregados antes da inicialização do aplicativo. Os adaptadores reais, autenticação, recorrências, sincronização e persistência permanecem ativos. Arquivos de demonstração em `preview-ux/` não fazem parte da distribuição.
 

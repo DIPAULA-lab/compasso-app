@@ -1,0 +1,94 @@
+/* Fluxos de tarefas. Usa os tokens e componentes do Compasso. */
+.qa{border-radius:var(--r-ctl);background:var(--surface-2);transition:background-color var(--m-base) var(--ez),box-shadow var(--m-base) var(--ez)}
+.qa:focus-within,.qa.has-text{background:var(--surface);box-shadow:0 0 0 1.5px var(--ink)}
+.qa-line{display:flex;align-items:center;gap:8px;min-height:42px;padding:3px 6px 3px 12px}
+.qa-plus{display:grid;place-items:center;flex:none;color:var(--ink-3)}
+.qa-plus svg{width:15px;height:15px}
+.qa:focus-within .qa-plus{color:var(--ink)}
+.qa input#qa-title{flex:1;min-width:0;height:34px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;outline:0;font-size:15px;font-weight:500;color:var(--ink)}
+.qa input#qa-title::placeholder{color:var(--ink-3);opacity:1}
+.qa-key{flex:none;min-width:20px;padding:1px 6px;border-radius:6px;background:var(--fill);font-family:var(--f-num);font-size:11px;font-weight:600;text-align:center;color:var(--ink-3)}
+.qa:focus-within .qa-key,.qa.has-text .qa-key{display:none}
+.qa-go{display:none;flex:none}
+.qa.has-text .qa-go{display:inline-flex}
+.qa-opts{display:none;flex-direction:column;gap:7px;padding:2px 10px 11px}
+.qa:focus-within .qa-opts,.qa.has-text .qa-opts{display:flex}
+@media (prefers-reduced-motion:no-preference){.qa:focus-within .qa-opts{animation:m-reveal var(--m-base) var(--ez)}}
+.qa-row,.form-when{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.qa-chip{position:relative;gap:5px;min-height:28px;padding:3px 10px;font-size:12.5px;cursor:pointer}
+.qa-chip svg{width:12px;height:12px}
+.qa-chip .prio{font-size:10px}
+.qa-chip[aria-pressed="true"] .prio{color:inherit}
+.qa-pick input{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;background:none;opacity:0;cursor:pointer}
+.qa select#qa-cat{width:auto;height:28px;min-height:28px;padding:0 24px 0 10px;background-position:right 8px center;border-radius:99px;font-size:12.5px;font-weight:600}
+.qa-hint{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 10px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.qa-lit{padding:0;border:0;background:none;font-size:12px;font-weight:500;color:var(--ink-3);text-decoration:underline;text-underline-offset:2px}
+[data-area="tarefas"] .qa{margin-bottom:14px}
+.dp .qa{margin:0 0 8px}
+.form-when{margin-top:-6px}
+
+/* pílula de prazo como controle */
+.due-btn{flex:none;display:inline-flex;align-items:center;gap:4px;padding:0;border:0;border-radius:99px;background:none;color:var(--ink-3);font-size:12px;font-weight:600;cursor:pointer;transition:transform var(--m-fast) var(--ez),opacity var(--m-fast)}
+.due-btn:hover .due{filter:brightness(.92)}
+.due-btn:active{transform:scale(.95)}
+.due-btn.is-none{min-height:21px;padding:0 8px;box-shadow:inset 0 0 0 1px var(--line-2)}
+.due-btn.is-none svg{width:11px;height:11px}
+@media (hover:hover) and (pointer:fine){
+ .due-btn.is-none{opacity:0}
+ .row:hover .due-btn.is-none,.due-btn.is-none:focus-visible,.due-btn.is-none[aria-expanded="true"]{opacity:1}
+}
+.late-all{margin-left:auto;padding:0;border:0;background:none;font:inherit;font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--bad);text-decoration:underline;text-underline-offset:2px}
+.group-h.has-act{justify-content:flex-start}
+
+/* menu "quando" */
+.pop{position:fixed;z-index:65;width:236px;padding:6px;border-radius:var(--r-tile);background:var(--surface);box-shadow:var(--shadow);transform-origin:top right}
+.pop>button,.pop-date{position:relative;display:flex;align-items:center;gap:9px;width:100%;min-height:36px;padding:5px 9px;border:0;border-radius:9px;background:none;font-size:13.5px;font-weight:500;text-align:left;color:var(--ink);cursor:pointer}
+.pop>button:hover,.pop>button:focus-visible,.pop-date:hover{background:var(--surface-2)}
+.pop>button:focus-visible{outline:0;box-shadow:inset 0 0 0 1.5px var(--ink)}
+.pop>button i,.pop-date>i{width:8px;height:8px;flex:none;border-radius:50%}
+.pop i.due-red{background:var(--due-red)}.pop i.due-yellow{background:var(--due-yellow)}.pop i.due-green{background:var(--due-green)}
+.pop>button span,.pop-date span{flex:1}
+.pop em{font-family:var(--f-num);font-size:12px;font-style:normal;color:var(--ink-3)}
+.pop>button[aria-checked="true"]{font-weight:700}
+.pop-t{padding:6px 9px 7px;font-size:12px;font-weight:600;color:var(--ink-3)}
+.pop-date input{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;background:none;opacity:0;cursor:pointer}
+.pop-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:6px;padding:3px;border-radius:10px;background:var(--fill)}
+.pop-seg button{min-height:30px;padding:2px;border:0;border-radius:8px;background:none;font-size:12px;font-weight:600;color:var(--ink)}
+.pop-seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+/* arrastar */
+[draggable="true"]{cursor:grab}
+.row.dragging{opacity:.35}
+.is-dragging .dp-day,.is-dragging .cday,.is-dragging .task-list-card{transition:box-shadow var(--m-fast) var(--ez),background-color var(--m-fast)}
+.dp-day.drop-on,.cday.drop-on,.task-list-card.drop-on{box-shadow:inset 0 0 0 2px var(--ink)}
+.task-group{display:contents}
+@media (pointer:coarse){.due-btn{min-height:28px}.late-all{padding:6px 0}}
+@media (max-width:760px){
+ .qa-key{display:none}
+ .qa input#qa-title{font-size:16px}
+}
+/* linha de filtros de Tarefas: categorias à esquerda, controles à direita; no celular, categorias roláveis */
+[data-area="tarefas"] .filters .seg{margin-left:0}
+.task-cats{display:flex;flex-wrap:wrap;gap:8px;flex:1;min-width:0}
+.meta .due-btn.is-none{order:9}
+@media (max-width:760px){
+ .task-cats{flex:0 0 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px;max-width:calc(100% + 32px);flex-basis:calc(100% + 32px)}
+ .task-cats::-webkit-scrollbar{display:none}
+ .task-cats .fchip{flex:none}
+ [data-area="tarefas"] .filters .seg{flex:1;min-width:0}
+ [data-area="tarefas"] .filters .seg button{flex:1;padding-inline:6px}
+}
+/* Safari ignora altura e padding do select nativo: mesma caixa dos outros campos, com seta própria */
+select,.recbox select{-webkit-appearance:none;appearance:none;padding-right:30px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='14' fill='none' stroke='%238A8A8A' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 5l3-3 3 3M2 9l3 3 3-3'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+
+/* área de toque mínima de 24px (44px em toque) sem mudar o desenho */
+.due-btn,.late-all,.qa-lit{position:relative}
+.due-btn::after,.late-all::after,.qa-lit::after{content:"";position:absolute;inset:-6px -2px}
+@media (pointer:coarse){.due-btn::after,.late-all::after{inset:-12px -4px}}
+/* vermelho de prioridade como texto: usa o tom de alerta, legível nos dois temas */
+.prio.p1{color:var(--bad)}
+.more{color:var(--ink-2)}
+.si{min-height:24px}
+.gp .check{position:relative}
+.gp .check::after{content:"";position:absolute;inset:-4px}
+.tbl summary,.more-opts summary{min-height:24px}
