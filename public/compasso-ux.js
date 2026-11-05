@@ -1,14 +1,6 @@
 /* Behavior and content organization only. No design tokens or style overrides. */
-let compassoMapWeeks=8;
+let compassoMapWeeks=53;
 const compassoTemplate=html=>{const t=document.createElement('template');t.innerHTML=html;return t;};
-const compassoHomeOriginal=vHoje;
-vHoje=()=>{
- const t=compassoTemplate(compassoHomeOriginal()),root=t.content;
- // Reorder complete original components; keep their exact visual definitions.
- const tasks=root.querySelector('.home-mid'),goals=root.querySelector('.goals-panel');
- goals.before(tasks);
- return t.innerHTML;
-};
 // The current task view already groups nonempty categories. Reuse its creation shortcuts.
 const compassoTasksOriginal=vTarefas;
 vTarefas=()=>{
@@ -43,11 +35,8 @@ const compassoStatsOriginal=vStats;
 vStats=()=>{
  const t=compassoTemplate(compassoStatsOriginal()),root=t.content,kpis=root.querySelector('.kpis');
  const labels=kpis.querySelectorAll('.l');labels[0].textContent='consistência média dos hábitos · últimos 30 dias';labels[2].textContent='tarefas concluídas · últimos 7 dias';labels[3].textContent='treinos · últimos 30 dias';
- const summary=document.createElement('section');summary.className='card';
- summary.innerHTML=`<div class="card-h"><h2>Seu ritmo recente</h2></div><p class="muted">${S.tasks.filter(x=>x.done&&x.doneAt?.slice(0,10)>=dk(addD(new Date(),-6))).length} tarefas concluídas nos últimos 7 dias · ${wThisWeek().length}/${weekTarget()} treinos nesta semana.</p>`;
- kpis.after(summary);
  const card=root.querySelector('[data-heat-weeks]')?.closest('section');
- if(card){const controls=document.createElement('div');controls.className='card-h';controls.innerHTML=`<div class="seg" role="group" aria-label="Período dos mapas de hábitos"><button data-act="compasso-period" data-weeks="8" aria-pressed="${compassoMapWeeks===8}">8 semanas</button><button data-act="compasso-period" data-weeks="53" aria-pressed="${compassoMapWeeks===53}">1 ano</button></div>`;card.querySelector('.card-h').after(controls);}
+ if(card){const controls=document.createElement('div');controls.className='card-h';controls.innerHTML=`<div class="seg" role="group" aria-label="Período dos mapas de hábitos"><button data-act="compasso-period" data-weeks="8" aria-pressed="${compassoMapWeeks===8}">8 semanas</button><button data-act="compasso-period" data-weeks="53" aria-pressed="${compassoMapWeeks===53}">Longo prazo</button></div>`;card.querySelector('.card-h').after(controls);}
  return t.innerHTML;
 };
 A['compasso-period']=d=>{compassoMapWeeks=+d.weeks;quietRender();};

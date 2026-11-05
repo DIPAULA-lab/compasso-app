@@ -7,7 +7,7 @@
 :root{
   color-scheme:light;
   --bg:#FFFFFF; --surface:#FFFFFF; --surface-2:#F6F6F6; --fill:#F1F1F1; --line:#F1F1F1; --line-2:#E4E4E4;
-  --ink:#000000; --ink-2:#333333; --ink-3:#8A8A8A;
+  --ink:#000000; --ink-2:#333333; --ink-3:#6B6B6B;
   --blue:#0A6CFF; --blue-ink:#FFFFFF;
   --hab:#FF0049; --on-hab:#FFFFFF; --tar:#00D543; --on-tar:#FFFFFF; --tre:#32ADE6; --on-tre:#FFFFFF; --str:#8B3DFF;
   --accent:var(--ink); --accent-ink:var(--bg); --accent-soft:rgba(0,0,0,.07);
@@ -39,7 +39,7 @@
     --track:.22;
     --shadow:0 0 0 1px rgba(255,255,255,.08),0 18px 44px -12px rgba(0,0,0,.85);
     --card-shadow:0 0 0 1px rgba(255,255,255,.04); --pill-shadow:none; --pill-line:#2A2A2A;
-    --due-red:#E5484D; --due-yellow:#FFD500; --due-green:#1AE05A;
+    --due-red:#D93A3F; --due-yellow:#FFD500; --due-green:#1AE05A;
     --k-blue:#22BFFF; --k-red:#FF2A66; --k-lime:#87FF00; --k-indigo:#8C8AFF;
   }
 }
@@ -56,7 +56,7 @@
     --track:.22;
     --shadow:0 0 0 1px rgba(255,255,255,.08),0 18px 44px -12px rgba(0,0,0,.85);
     --card-shadow:0 0 0 1px rgba(255,255,255,.04); --pill-shadow:none; --pill-line:#2A2A2A;
-    --due-red:#E5484D; --due-yellow:#FFD500; --due-green:#1AE05A;
+    --due-red:#D93A3F; --due-yellow:#FFD500; --due-green:#1AE05A;
     --k-blue:#22BFFF; --k-red:#FF2A66; --k-lime:#87FF00; --k-indigo:#8C8AFF;
 }
 /* Each area tints its own screen */
@@ -756,15 +756,6 @@ input[type=text],input[type=password],input[type=number],input[type=date],input[
   .hl-ck::after{inset:-16px -16px -16px -12px}
   .check::after{content:"";position:absolute;inset:-10px}
 }
-/* Início no celular: o que fazer hoje vem antes dos indicadores */
-@media (max-width:900px){
-  #main[data-area="hoje"]{display:flex;flex-direction:column}
-  #main[data-area="hoje"]>*{order:4;margin-top:0;margin-bottom:14px}
-  #main[data-area="hoje"]>.banner{order:0}
-  #main[data-area="hoje"]>.vh{order:1;margin-bottom:18px}
-  #main[data-area="hoje"]>.home-mid{order:2}
-  #main[data-area="hoje"]>.bento{order:3}
-}
 
 /* ===== Refinamento visual ===== */
 /* estados vazios: ícone, título, explicação e próximo passo */
@@ -1069,8 +1060,8 @@ function dueTag(x){
 }
 const PRIO={1:'Alta',2:'Média',3:'Baixa'};
 function taskRow(x,showCategory=true){
-  const meta=`${showCategory?catChip(x.cat):''}${dueTag(x)}${x.prio&&x.prio!=2?`<span class="prio p${x.prio}">${x.prio==1?'▲ Alta':'▽ Baixa'}</span>`:''}${hasRec(x.rec)?`<span class="tag rec">↻ ${esc(recLabel(x.rec))}</span>`:''}${goalOf(x.goalId)?`<span class="tag goal">◎ ${esc(goalOf(x.goalId).title)}</span>`:''}${x.notes?'<span class="muted small">· nota</span>':''}`;
-  return `<div class="row ${x.done?'done':''}" data-key="t:${x.id}">
+  const meta=`${showCategory?catChip(x.cat):''}${dueBtn(x)}${x.prio&&x.prio!=2?`<span class="prio p${x.prio}">${x.prio==1?'▲ Alta':'▽ Baixa'}</span>`:''}${hasRec(x.rec)?`<span class="tag rec">↻ ${esc(recLabel(x.rec))}</span>`:''}${goalOf(x.goalId)?`<span class="tag goal">◎ ${esc(goalOf(x.goalId).title)}</span>`:''}${x.notes?'<span class="muted small">· nota</span>':''}`;
+  return `<div class="row ${x.done?'done':''}" data-key="t:${x.id}" ${dragAttr(x)}>
     <button class="check" role="checkbox" aria-checked="${!!x.done}" aria-label="Concluir ${esc(x.title)}" data-act="task-toggle" data-id="${x.id}">${CHECK}</button>
     <div class="main"><button class="t" data-act="task-edit" data-id="${x.id}">${esc(x.title)}</button>
       ${meta?`<div class="meta">${meta}</div>`:''}
@@ -1250,18 +1241,17 @@ function vHoje(){
   const rings=`<section class="card rings-w" aria-label="Progresso de hoje">
     <svg viewBox="0 0 200 200" role="img" aria-label="Hábitos ${Math.round(pH*100)}%, tarefas ${Math.round(pT*100)}%, treinos ${Math.round(clamp(pW,0,1)*100)}%"><g fill="none" stroke-width="22" stroke-linecap="round" transform="rotate(-90 100 100)">${ring(89,pH,'hab')}${ring(64,pT,'tar')}${ring(39,pW,'tre')}</g></svg>
     <div class="leg">
-      <button class="it" data-act="nav" data-v="habitos"><div class="l" style="color:var(--hab)">Hábitos</div><div class="v">${hd}<small>/${hs.length}</small></div><div class="s">feitos hoje</div></button>
-      <button class="it" data-act="nav" data-v="tarefas"><div class="l" style="color:var(--tar)">Tarefas</div><div class="v">${tDone}<small>/${tTot}</small></div><div class="s">${b.late.length?`<span style="color:var(--bad)">${b.late.length} atrasada${b.late.length>1?'s':''}</span>`:`hoje · ${open.length} aberta${open.length===1?'':'s'}`}</div></button>
-      <button class="it" data-act="nav" data-v="treinos"><div class="l" style="color:var(--tre)">Treinos</div><div class="v">${ww.length}<small>/${weekTarget()}</small></div><div class="s">nesta semana</div></button>
+      <button class="it" data-act="nav" data-v="habitos"><div class="l" style="color:var(--hab-t)">Hábitos</div><div class="v">${hd}<small>/${hs.length}</small></div><div class="s">feitos hoje</div></button>
+      <button class="it" data-act="nav" data-v="tarefas"><div class="l" style="color:var(--tar-t)">Tarefas</div><div class="v">${tDone}<small>/${tTot}</small></div><div class="s">${b.late.length?`<span style="color:var(--bad)">${b.late.length} atrasada${b.late.length>1?'s':''}</span>`:`hoje · ${open.length} aberta${open.length===1?'':'s'}`}</div></button>
+      <button class="it" data-act="nav" data-v="treinos"><div class="l" style="color:var(--tre-t)">Treinos</div><div class="v">${ww.length}<small>/${weekTarget()}</small></div><div class="s">nesta semana</div></button>
     </div></section>`;
   const mon=monOf(t);
   const mAb=MES[t.getMonth()];
   const kmTile=`<button class="card w-tile km-tile" data-act="nav" data-v="treinos" title="${runsM} corrida${runsM===1?'':'s'} em ${MESF[t.getMonth()].toLowerCase()}"><h2 class="tile-t">Corridas em ${mAb.charAt(0).toUpperCase()+mAb.slice(1)}</h2><div class="km-v"><b>${nf(km,1)}</b> Km</div></button>`;
   const weekTile=`<section class="card w-tile week-tile" title="${ww.length} de ${weekTarget()} treinos nesta semana"><h2 class="tile-t">Treinos na Semana</h2>
     <div class="wkdays">${[...Array(7)].map((_,i)=>{const k=dk(addD(mon,i));const on=S.workouts.some(w=>calendarOn(w,k));return `<div class="${k===tk?'td':''}"><i class="${on?'on':''}"></i><span>${DOW[i][0].toUpperCase()}</span></div>`}).join('')}</div></section>`;
-  h+=`<div class="bento">${rings}${kmTile}${weekTile}</div>`;
+  h+=`<div class="home-day"><div>${dayPlanner(UI.calSel)}</div><aside class="home-rail" aria-label="Progresso">${rings}<div class="rail-tiles">${kmTile}${weekTile}</div></aside></div>`;
   h+=goalsPanel();
-  h+=`<div class="grid2 home-mid">${habitsByCat()}${tasksByCat(open)}</div>`;
   h+=weekStrip();
   return h;
 }
@@ -1325,8 +1315,7 @@ function tasksByCat(open){
 function weekStrip(){
   const tk=today();const start=monOf(new Date());const cs=calStatus();
   const ww=wThisWeek();
-  let h=`<section class="card strip-card"><div class="card-h"><div><h2>Próximas duas Semanas</h2><div class="src" style="margin-top:2px">${esc(cs.t)} · ${ww.length}/${weekTarget()} treinos nesta semana</div></div><div class="actions"><button class="btn primary" data-act="nav" data-v="calendario">Calendário completo</button></div></div>`;
-  if(cs.cls==='err')h+=`<div class="banner err" style="align-items:center"><span style="flex:1">${esc(cs.t)}</span>${gNeedsAuth()?'<button class="btn small" data-act="g-connect">Reconectar</button>':''}</div>`;
+  let h=`<section class="card strip-card"><div class="card-h"><div><h2>Próximas duas Semanas</h2><div class="src" style="margin-top:2px">${ww.length}/${weekTarget()} treinos nesta semana</div></div><div class="actions"><button class="btn" data-act="nav" data-v="calendario">Calendário completo</button></div></div>`;
   h+=`<div class="strip-scroll">`;
   for(let wk=0;wk<2;wk++){
     h+=`<div class="strip">`;
@@ -1488,10 +1477,11 @@ function vTarefas(){
   let h=vhead(`${open.length} abertas · ${all.filter(x=>x.done&&x.doneAt&&x.doneAt.slice(0,10)>=dk(addD(new Date(),-6))).length} concluídas nos últimos 7 dias`,'Tarefas',`<button class="btn" data-act="category-new">${ic('plus')}Nova categoria</button><button class="btn primary" data-act="task-new">${ic('plus')}Nova tarefa</button>`);
   const base=UI.taskShow==='open'?open:all.filter(x=>x.done);
   const cats=catList(),knownCats=new Set(cats.map(c=>c.id)),hasUncat=base.some(x=>!knownCats.has(x.cat));
-  h+=`<div class="filters"><button class="fchip" aria-pressed="${UI.taskCat==='all'}" data-act="task-cat" data-c="all">Todas <span class="n">${base.length}</span></button>`+
+  h+=`<div class="filters"><div class="task-cats"><button class="fchip" aria-pressed="${UI.taskCat==='all'}" data-act="task-cat" data-c="all">Todas <span class="n">${base.length}</span></button>`+
     cats.map(c=>`<button class="fchip" aria-pressed="${UI.taskCat===c.id}" data-act="task-cat" data-c="${c.id}"><i style="background:${cv(c.c)}"></i>${esc(c.name)} <span class="n">${base.filter(x=>x.cat===c.id).length}</span></button>`).join('')+
     (hasUncat?`<button class="fchip" aria-pressed="${UI.taskCat==='__uncategorized'}" data-act="task-cat" data-c="__uncategorized">Sem categoria <span class="n">${base.filter(x=>!knownCats.has(x.cat)).length}</span></button>`:'')+
-    `<div class="seg" role="group" aria-label="Mostrar"><button aria-pressed="${UI.taskShow==='open'}" data-act="task-show" data-s="open">Abertas</button><button aria-pressed="${UI.taskShow==='done'}" data-act="task-show" data-s="done">Concluídas</button></div></div>`;
+    `</div>${UI.taskShow==='open'?`<div class="seg" role="group" aria-label="Agrupar por"><button aria-pressed="${UI.taskGroup!=='due'}" data-act="task-group" data-g="cat">Categoria</button><button aria-pressed="${UI.taskGroup==='due'}" data-act="task-group" data-g="due">Prazo</button></div>`:''}<div class="seg" role="group" aria-label="Mostrar"><button aria-pressed="${UI.taskShow==='open'}" data-act="task-show" data-s="open">Abertas</button><button aria-pressed="${UI.taskShow==='done'}" data-act="task-show" data-s="done">Concluídas</button></div></div>`;
+  if(UI.taskShow==='open')h+=quickAdd();
   const list=base.filter(x=>UI.taskCat==='all'||(UI.taskCat==='__uncategorized'?!knownCats.has(x.cat):x.cat===UI.taskCat));
   const shownDone=UI.taskShow==='done'?[...list].sort((a,b)=>String(b.doneAt||'').localeCompare(String(a.doneAt||''))).slice(0,80):[];
   const groups=cats.filter(c=>UI.taskCat==='all'||UI.taskCat===c.id).map(c=>({cat:c,items:list.filter(x=>x.cat===c.id)}));
@@ -1502,15 +1492,19 @@ function vTarefas(){
   const catCard=({cat,items})=>{
     const isUncat=cat.id==='__uncategorized';
     const tasks=UI.taskShow==='open'?items:shownDone.filter(x=>isUncat?!knownCats.has(x.cat):x.cat===cat.id);
-    const body=UI.taskShow==='open'?(()=>{const b=taskBuckets(tasks);const grp=(k,l,cls='')=>b[k].length?`<div class="group-h ${cls}" data-key="gh:${k}">${l} <span class="mono">${b[k].length}</span></div><div class="list" data-key="gl:${k}">${b[k].map(x=>taskRow(x,false)).join('')}</div>`:'';return grp('late','Atrasadas','late')+grp('today','Hoje')+grp('week','Próximos 7 dias')+grp('later','Mais adiante')+grp('none','Sem prazo')})():tasks.length?`<div class="list">${tasks.map(x=>taskRow(x,false)).join('')}</div>`:'';
-    return `<article class="task-list-card" data-key="tc:${cat.id}"><div class="task-list-head"><h2 class="task-list-title" style="--task-cat:${cv(cat.c)}"><i></i>${esc(cat.name)} <span class="mono">${items.length}</span></h2>${!isUncat?`<button class="iconbtn" aria-label="Nova tarefa em ${esc(cat.name)}" title="Nova tarefa nesta categoria" data-act="task-new" data-c="${cat.id}">${ic('plus')}</button>`:''}</div>${body||`<div class="empty task-empty">Nenhuma tarefa ${UI.taskShow==='open'?'aberta':'concluída'} nesta categoria.</div>`}</article>`;
+    const body=UI.taskShow==='open'?(()=>{const b=taskBuckets(tasks);const grp=(k,l,cls='')=>b[k].length?`<div class="group-h ${cls}" data-key="gh:${k}">${l} <span class="mono">${b[k].length}</span>${k==='late'&&!isUncat?lateBtn(b[k].length,cat.id):''}</div><div class="list" data-key="gl:${k}">${b[k].map(x=>taskRow(x,false)).join('')}</div>`:'';return grp('late','Atrasadas','late')+grp('today','Hoje')+grp('week','Próximos 7 dias')+grp('later','Mais adiante')+grp('none','Sem prazo')})():tasks.length?`<div class="list">${tasks.map(x=>taskRow(x,false)).join('')}</div>`:'';
+    return `<article class="task-list-card" data-key="tc:${cat.id}" ${!isUncat?`data-cat="${esc(cat.id)}"`:''}><div class="task-list-head"><h2 class="task-list-title" style="--task-cat:${cv(cat.c)}"><i></i>${esc(cat.name)} <span class="mono">${items.length}</span></h2>${!isUncat?`<button class="iconbtn" aria-label="Nova tarefa em ${esc(cat.name)}" title="Nova tarefa nesta categoria" data-act="qa-cat" data-c="${cat.id}">${ic('plus')}</button>`:''}</div>${body||`<div class="empty task-empty">Nenhuma tarefa ${UI.taskShow==='open'?'aberta':'concluída'} nesta categoria.</div>`}</article>`;
   };
   const isOpen=UI.taskShow==='open',shownOf=g=>isOpen?g.items.length:shownDone.filter(x=>g.cat.id==='__uncategorized'?!knownCats.has(x.cat):x.cat===g.cat.id).length;
   // com "Todas", categorias sem tarefas viram uma linha discreta no fim (com atalho para criar)
   const full=UI.taskCat==='all'?groups.filter(g=>shownOf(g)):groups,vazias=UI.taskCat==='all'?groups.filter(g=>!shownOf(g)&&g.cat.id!=='__uncategorized'):[];
+  if(isOpen&&UI.taskGroup==='due'&&list.length){
+    const b=taskBuckets(list),col=(k,l,c)=>b[k].length?`<article class="task-list-card" data-key="tb:${k}"><div class="task-list-head"><h2 class="task-list-title" style="--task-cat:${c}"><i></i>${l} <span class="mono">${b[k].length}</span></h2>${k==='late'?lateBtn(b[k].length):''}</div><div class="list">${b[k].map(x=>taskRow(x,true)).join('')}</div></article>`:'';
+    return h+`<div class="task-board">${col('late','Atrasadas','var(--due-red)')}${col('today','Hoje','var(--due-red)')}${col('week','Próximos 7 dias','var(--due-yellow)')}${col('later','Mais adiante','var(--due-green)')}${col('none','Sem prazo','var(--line-2)')}</div>`;
+  }
   if(!full.length)h+=emptyBox('check',isOpen?'Tudo em dia':'Nada concluído ainda',isOpen?`Nenhuma tarefa aberta${UI.taskCat!=='all'?' nesta categoria':''}.`:'As tarefas concluídas aparecem aqui.',isOpen?emptyBtn('task-new','Nova tarefa'):'');
   else h+=`<div class="task-board">${full.map(catCard).join('')}</div>`;
-  if(full.length&&vazias.length)h+=`<div class="task-empty-cats" data-key="tec"><span>Sem tarefas ${isOpen?'abertas':'concluídas'}</span>${vazias.map(g=>isOpen?`<button class="fchip" data-act="task-new" data-c="${g.cat.id}" title="Nova tarefa em ${esc(g.cat.name)}"><i style="background:${cv(g.cat.c)}"></i>${esc(g.cat.name)}${ic('plus')}</button>`:`<span class="fchip"><i style="background:${cv(g.cat.c)}"></i>${esc(g.cat.name)}</span>`).join('')}</div>`;
+  if(full.length&&vazias.length)h+=`<div class="task-empty-cats" data-key="tec"><span>Sem tarefas ${isOpen?'abertas':'concluídas'}</span>${vazias.map(g=>isOpen?`<button class="fchip" data-act="qa-cat" data-c="${g.cat.id}" title="Nova tarefa em ${esc(g.cat.name)}"><i style="background:${cv(g.cat.c)}"></i>${esc(g.cat.name)}${ic('plus')}</button>`:`<span class="fchip"><i style="background:${cv(g.cat.c)}"></i>${esc(g.cat.name)}</span>`).join('')}</div>`;
   return h;
 }
 
@@ -1521,7 +1515,6 @@ function vCal(){
   const cs=calStatus();
   let h=vhead(cs.cls==='ok'?'com Google Calendar':'',`${MESF[m.getMonth()]} ${m.getFullYear()}`,
    `<button class="iconbtn" aria-label="Mês anterior" data-act="cal-nav" data-d="-1">${ic('left')}</button><button class="btn" data-act="cal-today">Hoje</button><button class="iconbtn" aria-label="Próximo mês" data-act="cal-nav" data-d="1">${ic('right')}</button><button class="btn primary" data-act="event-new" data-date="${UI.calSel}">${ic('plus')}Evento</button>`);
-  if(cs.cls==='err')h+=`<div class="banner err" style="align-items:center"><span style="flex:1">${esc(cs.t)}</span>${gNeedsAuth()?'<button class="btn small" data-act="g-connect">Reconectar</button>':''}</div>`;
   let g=`<div class="cal"><div class="cal-dow">${DOW.map(d=>`<div>${d}</div>`).join('')}</div><div class="cal-grid">`;
   for(let i=0;i<42;i++){
     const d=addD(gs,i),k=dk(d);const out=d.getMonth()!==m.getMonth();
@@ -1546,7 +1539,7 @@ function vCal(){
   a+=agendaDay(UI.calSel,'Agenda');
   const hs=activeHabits().filter(x=>hStart(x)<=UI.calSel&&(x.freq==='weekly'||isSched(x,UI.calSel)||doneOn(x.id,UI.calSel)));
   if(hs.length&&UI.calSel<=today()){a+=`<div class="group-h">Hábitos</div><div class="list">${hs.map(x=>{const d=doneOn(x.id,UI.calSel);return `<div class="row"><button class="check round" role="checkbox" aria-checked="${d}" aria-label="${esc(x.name)}" data-act="habit-toggle" data-id="${x.id}" data-k="${UI.calSel}">${CHECK}</button><div class="main">${esc(x.name)}</div></div>`}).join('')}</div>`}
-  a+=`<p class="src" style="margin-top:12px">${esc(cs.t)}</p></aside>`;
+  a+=(dayNotice()||`<p class="src" style="margin-top:12px">${esc(cs.t)}</p>`)+`</aside>`;
   return h+`<div class="cal-wrap">${g}${a}</div>`;
 }
 
@@ -1707,7 +1700,7 @@ function drawLine(el,c){
 function drawHeat(el){
   // como no GitHub: quadradinhos de ~18px e tantas semanas quantas couberem (de 20 a 53), ocupando a largura toda
   const W=Math.max(260,el.clientWidth),lw=26,gap=3,avail=W-lw;
-  const nativeCols=clamp(Math.floor((avail+gap)/(18+gap)),20,53),cols=compassoMapWeeks,step=Math.min(25,(avail+gap)/nativeCols),rs=Math.round(step);
+  const nativeCols=clamp(Math.floor((avail+gap)/(18+gap)),20,53),cols=Math.min(compassoMapWeeks,nativeCols),step=Math.min(25,(avail+gap)/(cols<nativeCols&&cols<20?cols:nativeCols)),rs=Math.round(step);
   const cs=rs-gap,H=18+7*rs-gap,X=c=>Math.round(lw+c*step),Y=r=>18+r*rs;
   const start=addD(monOf(new Date()),-(cols-1)*7);const tk=today();
   const hb=el.dataset.habit?S.habits.find(x=>x.id===el.dataset.habit):null;
@@ -1766,7 +1759,7 @@ function taskModal(x,date,goalId,categoryId){
    <div class="frow"><div class="field"><label for="f-cat">Categoria</label><select id="f-cat">${catOptions(x.cat)}</select></div>
    <div class="field"><label for="f-due">Prazo / início</label><input type="date" id="f-due" value="${esc(x.startDate||x.due||'')}"></div>
    <div class="field"><label for="f-prio">Prioridade</label><select id="f-prio">${[1,2,3].map(p=>`<option value="${p}" ${+x.prio===p?'selected':''}>${PRIO[p]}</option>`).join('')}</select></div></div>
-   ${rangeFields('f-due',x.startDate||x.due,x.startDate?x.due:'')}
+   ${formWhen()}${rangeFields('f-due',x.startDate||x.due,x.startDate?x.due:'')}
    <details class="more-opts" ${x.dueTime||x.goalId||hasRec(x.rec)||x.notes?'open':''}><summary>Mais opções <span>horário, lembrete, meta, repetição e notas</span></summary><div class="more-body">
    <div class="frow"><div class="field"><label for="f-due-time">Horário do prazo (opcional)</label><input type="time" id="f-due-time" value="${esc(x.dueTime||'')}"><span class="muted small">Sem horário: ${esc(notificationPrefs().taskTime)}.</span></div><label class="chip"><input type="checkbox" id="f-remind" ${x.reminderEnabled!==false?'checked':''}> Lembrar desta tarefa</label></div>
    <div class="frow"><div class="field"><label for="f-goal">Faz parte da meta</label><select id="f-goal">${goalOptions(x.goalId)}</select></div>
@@ -2030,7 +2023,7 @@ function boxFrames(el){const cs=getComputedStyle(el);return {h:el.offsetHeight+'
 const shut={height:'0px',paddingTop:'0px',paddingBottom:'0px',marginTop:'0px',marginBottom:'0px',opacity:0};
 function enterEl(el){
   const f=boxFrames(el);el.style.overflow='hidden';
-  el.animate([{...shut,transform:'translateY(-4px)'},{height:f.h,paddingTop:f.pt,paddingBottom:f.pb,marginTop:f.mt,marginBottom:f.mb,opacity:1,transform:'none'}],{duration:300,easing:EZ})
+  el.animate([{...shut,transform:'translateY(-4px)'},{height:f.h,paddingTop:f.pt,paddingBottom:f.pb,marginTop:f.mt,marginBottom:f.mb,opacity:1,transform:'none'}],{duration:COMPASSO_MOTION.duration.collapse,easing:COMPASSO_MOTION.easing.standard})
     .finished.then(()=>{el.style.overflow=''},()=>{});
 }
 function leaveEl(el){
@@ -2047,9 +2040,9 @@ function pop(el){
 function tick(p){
   const el=p&&p.closest&&p.closest('.v,.gl-p,.hg-c,.km-v,.hl-s,.task-list-title .mono,.fchip .n');if(!el)return;
   const block=getComputedStyle(el).display!=='inline';
-  el.animate(block?[{transform:'translateY(.3em)',opacity:.15},{transform:'none',opacity:1}]:[{opacity:.15},{opacity:1}],{duration:280,easing:EZ});
+  el.animate(block?[{transform:'translateY(.3em)',opacity:.15},{transform:'none',opacity:1}]:[{opacity:.15},{opacity:1}],{duration:COMPASSO_MOTION.duration.state,easing:COMPASSO_MOTION.easing.standard});
 }
-function slideIn(sel,dir,dx=16){const el=document.querySelector(sel);if(el&&motionOK())el.animate([{opacity:0,transform:`translateX(${dir*dx}px)`},{opacity:1,transform:'none'}],{duration:260,easing:EZ})}
+function slideIn(sel,dir,dx=16){const el=document.querySelector(sel);if(!el||!motionOK())return;el.getAnimations().forEach(a=>{if(a.id==='slide')a.cancel()});el.animate([{opacity:0,transform:`translateX(${dir*dx}px)`},{opacity:1,transform:'none'}],{id:'slide',duration:COMPASSO_MOTION.duration.state,easing:COMPASSO_MOTION.easing.standard})}
 // anéis do Início enchem a partir do zero quando a tela aparece
 function fillRings(){
   if(!motionOK())return;
@@ -2246,6 +2239,8 @@ function applyTheme(t){
 <script src="compasso-ux.js"></script>
 <script src="compasso-motion.js"></script>
 <script src="compasso-interactions.js"></script><script src="date-range-bands.js"></script><link rel="stylesheet" href="date-range-bands.css">
+<script src="compasso-day.js"></script><link rel="stylesheet" href="compasso-day.css">
+<script src="compasso-tasks.js"></script><link rel="stylesheet" href="compasso-tasks.css">
 <script>
 /* ============ boot ============ */
 applyTheme(getTheme());
