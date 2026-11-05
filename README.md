@@ -8,6 +8,8 @@ Hábitos, metas, tarefas, agenda e treinos num só lugar, rodando **no seu compu
 
 Cada pessoa instala a sua própria cópia. O app começa vazio e você monta do seu jeito: suas categorias, seus hábitos, suas metas.
 
+O Início abre no **plano do dia**: seus compromissos, o que precisa ser feito e como andar pelos outros dias, tudo na mesma tela.
+
 ---
 
 ## 1. Instalar
@@ -57,11 +59,30 @@ O ícone abre o Compasso numa janela própria, como qualquer app.
    - todo dia, X vezes por semana ou em dias fixos;
    - um hábito de treino pode **marcar sozinho** quando houver treino.
 3. **Hábitos → + Meta**: ligue hábitos e tarefas a uma meta e a porcentagem sobe sozinha. Também dá para acompanhar um valor à mão, por exemplo "Juntar R$ 10.000".
-4. **Tarefas → + Nova tarefa**: com categoria, prazo, prioridade e repetição. A cor do prazo avisa a urgência:
+4. **Tarefas:** escreva no campo **Adicionar tarefa** e aperte Enter. **+ Nova tarefa** abre o formulário completo, com repetição, lembrete, meta e notas. A cor do prazo avisa a urgência:
    - 🔴 **vermelho:** vencida ou até 5 dias;
    - 🟡 **amarelo:** 6 a 7 dias;
    - 🟢 **verde:** 8 dias ou mais.
 5. **Claro/escuro:** botão com a lua ou o sol no topo.
+
+### Planejar o dia
+
+O plano aparece no **Início** e na **Agenda → Dia**:
+
+- **Trocar de dia:** toque em um dia na faixa da semana ou use as setas para mudar de semana. No celular, dá para deslizar para o lado; no computador, as setas do teclado funcionam quando a faixa está em foco.
+- **Compromissos:** ficam em ordem de horário, com uma linha marcando a hora atual e o próximo compromisso resumido no topo.
+- **Tarefas e hábitos:** primeiro as atrasadas, depois as do dia. O que você conclui é riscado e desce para **Feitas**, com a opção **Desfazer**.
+- **Detalhes:** toque no nome de uma atividade para ver notas, horário e meta na própria linha, sem sair da tela.
+
+### Organizar tarefas
+
+- **Adicionar rápido:** a tecla **N** leva ao campo **Adicionar tarefa** de qualquer tela que o tenha; nas outras, abre o formulário. O final do texto vira prazo, prioridade e categoria. Por exemplo, `Pagar luz sexta ! #casa` cria "Pagar luz" para sexta, com prioridade alta, na categoria Casa. Ele entende `hoje`, `amanhã`, dias da semana e datas como `25/12`. Se entender errado, clique em **usar como texto**.
+- **Mudar prazo ou prioridade:** toque na pílula de prazo da tarefa. Nas tarefas sem prazo, é o botão **Prazo**.
+- **Reagendar atrasadas:** com duas ou mais atrasadas, **Reagendar** move todas de uma vez.
+- **Arrastar (computador):** solte a tarefa em um dia para mudar o prazo ou na coluna de outra categoria para mudar a categoria.
+- **Ver por prazo:** em **Tarefas**, alterne entre **Categoria** e **Prazo**.
+
+Mover, adicionar, concluir e excluir mostram **Desfazer** por alguns segundos.
 
 ---
 
@@ -193,6 +214,9 @@ Dois cliques em **`Desinstalar Compasso (Mac).command`** ou **`Desinstalar Compa
 compasso/
 ├── public/                         ← o app (HTML, CSS e JS num arquivo só: index.html)
 │   ├── compasso-shim.js            ← liga o app ao servidor local (dados + conectores)
+│   ├── compasso-day.js e .css      ← plano do dia (Início e Agenda → Dia)
+│   ├── compasso-tasks.js e .css    ← adicionar rápido, prazo na pílula, reagendar e arrastar
+│   ├── compasso-motion.js e .css   ← movimento aprovado (padrão em docs/PADRAO_DE_INTERACOES.md)
 │   ├── logo.svg, ícones, manifest
 ├── server/compasso.py              ← servidor + banco SQLite + Strava + backups (só Python padrão)
 ├── scripts/compasso-mac.sh         ← instalador e controle no Mac (LaunchAgent)
