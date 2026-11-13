@@ -8,17 +8,17 @@
   color-scheme:light;
   --bg:#FFFFFF; --surface:#FFFFFF; --surface-2:#F6F6F6; --fill:#F1F1F1; --line:#F1F1F1; --line-2:#E4E4E4;
   --ink:#000000; --ink-2:#333333; --ink-3:#6B6B6B;
-  --blue:#0A6CFF; --blue-ink:#FFFFFF;
-  --hab:#FF0049; --on-hab:#FFFFFF; --tar:#00D543; --on-tar:#FFFFFF; --tre:#32ADE6; --on-tre:#FFFFFF; --str:#8B3DFF;
+  --blue:#4589D1; --blue-ink:#FFFFFF;
+  --hab:#FF0049; --on-hab:#FFFFFF; --tar:#00D543; --on-tar:#FFFFFF; --tre:#4589D1; --on-tre:#FFFFFF; --str:#7C7AFF;
   --accent:var(--ink); --accent-ink:var(--bg); --accent-soft:rgba(0,0,0,.07);
-  --good:#00C13C; --warn:#FF9500; --bad:#E5002D; --bad-soft:#FFE3EA;
-  --c1:#0A6CFF; --c2:#FF7A00; --c3:#00E2FC; --c4:#FFC400; --c5:#FF0049; --c6:#00D543; --c7:#8B3DFF; --c8:#C1121F;
-  --h1:#FFD6E2; --h2:#FFA6BF; --h3:#FF6B95; --h4:#FF2E68; --h5:#D1003C;
+  --good:#00D543; --warn:#FF9900; --bad:#D11A17; --bad-soft:#FFE3EA;
+  --c1:#4589D1; --c2:#FF9900; --c3:#00E2FC; --c4:#FFD500; --c5:#FF0049; --c6:#00D543; --c7:#7C7AFF; --c8:#D11A17;
+  --h1:color-mix(in srgb,#FF0049 18%,var(--surface)); --h2:color-mix(in srgb,#FF0049 40%,var(--surface)); --h3:color-mix(in srgb,#FF0049 68%,var(--surface)); --h4:#FF0049; --h5:#D11A17;
   --track:.14;
   --shadow:0 2px 6px rgba(0,0,0,.08),0 18px 40px -14px rgba(0,0,0,.25);
   --card-shadow:0 0 6px rgba(0,0,0,.25); --pill-shadow:0 0 2px rgba(0,0,0,.25); --pill-line:#FFFDFA;
-  --due-red:#D02C2B; --due-yellow:#FFD500; --due-green:#00D543;
-  --k-blue:#00B0EC; --k-red:#FF0049; --k-lime:#87FF00; --k-indigo:#7C7AFF;
+  --due-red:#D11A17; --due-yellow:#FFD500; --due-green:#00D543;
+  --k-blue:#4589D1; --k-red:#FF0049; --k-lime:#87FF00; --k-indigo:#7C7AFF;
   --r-tile:15px; --r-ctl:12px;
   --f-display:"Raleway",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
   --f-body:"Raleway",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
@@ -30,34 +30,34 @@
     color-scheme:dark;
     --bg:#000000; --surface:#121212; --surface-2:#1C1C1C; --fill:#262626; --line:#232323; --line-2:#303030;
     --ink:#FFFFFF; --ink-2:#E6E6E6; --ink-3:#8E8E93;
-    --blue:#3D8BFF;
-    --hab:#FF2A66; --on-hab:#FFFFFF; --tar:#1AE05A; --on-tar:#00230C; --tre:#40B8F2; --on-tre:#00202E; --str:#A06BFF;
+    --blue:#4589D1;
+    --hab:#FF0049; --on-hab:#FFFFFF; --tar:#00D543; --on-tar:#000000; --tre:#4589D1; --on-tre:#000000; --str:#7C7AFF;
     --accent-soft:rgba(255,255,255,.12);
-    --good:#1AE05A; --warn:#FF9F0A; --bad:#FF3366; --bad-soft:#3A0E1A;
-    --c1:#3D8BFF; --c2:#FF8A1F; --c3:#00E2FC; --c4:#FFD000; --c5:#FF2A66; --c6:#1AE05A; --c7:#A06BFF; --c8:#E5383B;
-    --h1:#3D0716; --h2:#6E0A28; --h3:#A80D3C; --h4:#E3104F; --h5:#FF5C8A;
+    --good:#00D543; --warn:#FF9900; --bad:#FF0049; --bad-soft:#3A0E1A;
+    --c1:#4589D1; --c2:#FF9900; --c3:#00E2FC; --c4:#FFD500; --c5:#FF0049; --c6:#00D543; --c7:#7C7AFF; --c8:#D11A17;
+    --h1:color-mix(in srgb,#FF0049 18%,var(--surface)); --h2:color-mix(in srgb,#FF0049 40%,var(--surface)); --h3:color-mix(in srgb,#FF0049 68%,var(--surface)); --h4:#D11A17; --h5:#FF0049;
     --track:.22;
     --shadow:0 0 0 1px rgba(255,255,255,.08),0 18px 44px -12px rgba(0,0,0,.85);
     --card-shadow:0 0 0 1px rgba(255,255,255,.04); --pill-shadow:none; --pill-line:#2A2A2A;
-    --due-red:#D93A3F; --due-yellow:#FFD500; --due-green:#1AE05A;
-    --k-blue:#22BFFF; --k-red:#FF2A66; --k-lime:#87FF00; --k-indigo:#8C8AFF;
+    --due-red:#D11A17; --due-yellow:#FFD500; --due-green:#00D543;
+    --k-blue:#4589D1; --k-red:#FF0049; --k-lime:#87FF00; --k-indigo:#7C7AFF;
   }
 }
 :root[data-theme="dark"]{
     color-scheme:dark;
     --bg:#000000; --surface:#121212; --surface-2:#1C1C1C; --fill:#262626; --line:#232323; --line-2:#303030;
     --ink:#FFFFFF; --ink-2:#E6E6E6; --ink-3:#8E8E93;
-    --blue:#3D8BFF;
-    --hab:#FF2A66; --on-hab:#FFFFFF; --tar:#1AE05A; --on-tar:#00230C; --tre:#40B8F2; --on-tre:#00202E; --str:#A06BFF;
+    --blue:#4589D1;
+    --hab:#FF0049; --on-hab:#FFFFFF; --tar:#00D543; --on-tar:#000000; --tre:#4589D1; --on-tre:#000000; --str:#7C7AFF;
     --accent-soft:rgba(255,255,255,.12);
-    --good:#1AE05A; --warn:#FF9F0A; --bad:#FF3366; --bad-soft:#3A0E1A;
-    --c1:#3D8BFF; --c2:#FF8A1F; --c3:#00E2FC; --c4:#FFD000; --c5:#FF2A66; --c6:#1AE05A; --c7:#A06BFF; --c8:#E5383B;
-    --h1:#3D0716; --h2:#6E0A28; --h3:#A80D3C; --h4:#E3104F; --h5:#FF5C8A;
+    --good:#00D543; --warn:#FF9900; --bad:#FF0049; --bad-soft:#3A0E1A;
+    --c1:#4589D1; --c2:#FF9900; --c3:#00E2FC; --c4:#FFD500; --c5:#FF0049; --c6:#00D543; --c7:#7C7AFF; --c8:#D11A17;
+    --h1:color-mix(in srgb,#FF0049 18%,var(--surface)); --h2:color-mix(in srgb,#FF0049 40%,var(--surface)); --h3:color-mix(in srgb,#FF0049 68%,var(--surface)); --h4:#D11A17; --h5:#FF0049;
     --track:.22;
     --shadow:0 0 0 1px rgba(255,255,255,.08),0 18px 44px -12px rgba(0,0,0,.85);
     --card-shadow:0 0 0 1px rgba(255,255,255,.04); --pill-shadow:none; --pill-line:#2A2A2A;
-    --due-red:#D93A3F; --due-yellow:#FFD500; --due-green:#1AE05A;
-    --k-blue:#22BFFF; --k-red:#FF2A66; --k-lime:#87FF00; --k-indigo:#8C8AFF;
+    --due-red:#D11A17; --due-yellow:#FFD500; --due-green:#00D543;
+    --k-blue:#4589D1; --k-red:#FF0049; --k-lime:#87FF00; --k-indigo:#7C7AFF;
 }
 /* Each area tints its own screen */
 [data-area="habitos"]{--accent:var(--hab);--accent-ink:var(--on-hab);--accent-soft:color-mix(in srgb,var(--hab) 16%,transparent)}
@@ -931,7 +931,29 @@ const gCur=g=>isPer(g)?(+((g.prog||{})[perRange(g.period).key])||0):(+g.current|
 const gDeadline=g=>isPer(g)?perRange(g.period).end:g.deadline;
 
 /* workout plans */
-function planDone(p,key){return S.workouts.some(w=>calendarOn(w,key)&&(w.planId===p.id||(!w.planId&&w.type===p.type)))}
+/* treinos planejados × feitos, por semana (seg–dom): primeiro o mesmo dia; depois um treino do mesmo tipo
+   em outro dia da semana cobre o planejado que sobrou (o mais antigo primeiro, com o treino mais próximo).
+   Cada treino cobre um planejado só. Calculado uma vez por redesenho. */
+let PW_C=null;
+function planWeek(mon){
+  if(!PW_C){PW_C=new Map();queueMicrotask(()=>{PW_C=null})}
+  if(PW_C.has(mon))return PW_C.get(mon);
+  const days=[...Array(7)].map((_,i)=>dk(addD(pd(mon),i))),occ=[];
+  activePlans().forEach(p=>days.forEach(k=>{if(occursOn(p.rec,k))occ.push({p,k})}));
+  occ.sort((a,b)=>a.k.localeCompare(b.k));
+  const ws=S.workouts.filter(w=>w.date<=days[6]&&(w.endDate||w.date)>=days[0]),done=new Map(),cover=new Map();
+  const take=(o,w,same)=>{done.set(o.p.id+'|'+o.k,{w,same});cover.set(w.id,o)};
+  occ.forEach(o=>{const w=ws.find(w=>!cover.has(w.id)&&calendarOn(w,o.k)&&w.planId===o.p.id);if(w)take(o,w,true)});
+  occ.forEach(o=>{if(done.has(o.p.id+'|'+o.k))return;const w=ws.find(w=>!cover.has(w.id)&&calendarOn(w,o.k)&&!w.planId&&w.type===o.p.type);if(w)take(o,w,true)});
+  if(true)occ.forEach(o=>{if(done.has(o.p.id+'|'+o.k))return;
+    const far=w=>Math.abs(Math.round((pd(w.date)-pd(o.k))/864e5));
+    const c=ws.filter(w=>!cover.has(w.id)&&w.type===o.p.type&&(!w.planId||w.planId===o.p.id)).sort((a,b)=>far(a)-far(b)||a.date.localeCompare(b.date))[0];
+    if(c)take(o,c,false)});
+  const r={done,cover};PW_C.set(mon,r);return r;
+}
+const planMatch=(p,key)=>planWeek(dk(monOf(pd(key)))).done.get(p.id+'|'+key)||null;
+const planCover=w=>planWeek(dk(monOf(pd(w.date)))).cover.get(w.id)||null;
+function planDone(p,key){return !!planMatch(p,key)}
 const activePlans=()=>(S.plans||[]).filter(p=>p.active!==false&&hasRec(p.rec));
 const plannedOn=key=>activePlans().filter(p=>occursOn(p.rec,key)&&!planDone(p,key));
 const taskGhosts=key=>S.tasks.filter(x=>!x.done&&hasRec(x.rec)&&x.due&&key>x.due&&occursOn(x.rec,key));
@@ -1312,9 +1334,9 @@ function vHoje(){
   const rings=`<section class="card rings-w" aria-label="Progresso de hoje">
     <svg viewBox="0 0 200 200" role="img" aria-label="Hábitos ${Math.round(pH*100)}%, tarefas ${Math.round(pT*100)}%, treinos ${Math.round(clamp(pW,0,1)*100)}%"><g fill="none" stroke-width="22" stroke-linecap="round" transform="rotate(-90 100 100)">${ring(89,pH,'hab')}${ring(64,pT,'tar')}${ring(39,pW,'tre')}</g></svg>
     <div class="leg">
-      <button class="it" data-act="nav" data-v="habitos"><div class="l" style="color:var(--hab-t)">Hábitos</div><div class="v">${hd}<small>/${hs.length}</small></div><div class="s">feitos hoje</div></button>
-      <button class="it" data-act="nav" data-v="tarefas"><div class="l" style="color:var(--tar-t)">Tarefas</div><div class="v">${tDone}<small>/${tTot}</small></div><div class="s">${b.late.length?`<span style="color:var(--bad)">${b.late.length} atrasada${b.late.length>1?'s':''}</span>`:`hoje · ${open.length} aberta${open.length===1?'':'s'}`}</div></button>
-      <button class="it" data-act="nav" data-v="treinos"><div class="l" style="color:var(--tre-t)">Treinos</div><div class="v">${ww.length}<small>/${weekTarget()}</small></div><div class="s">nesta semana</div></button>
+      <button class="it" data-act="nav" data-v="habitos"><div class="l" style="color:var(--hab)">Hábitos</div><div class="v">${hd}<small>/${hs.length}</small></div><div class="s">feitos hoje</div></button>
+      <button class="it" data-act="nav" data-v="tarefas"><div class="l" style="color:var(--tar)">Tarefas</div><div class="v">${tDone}<small>/${tTot}</small></div><div class="s">${b.late.length?`<span style="color:var(--bad)">${b.late.length} atrasada${b.late.length>1?'s':''}</span>`:`hoje · ${open.length} aberta${open.length===1?'':'s'}`}</div></button>
+      <button class="it" data-act="nav" data-v="treinos"><div class="l" style="color:var(--tre)">Treinos</div><div class="v">${ww.length}<small>/${weekTarget()}</small></div><div class="s">nesta semana</div></button>
     </div></section>`;
   const mon=monOf(t);
   const mAb=MES[t.getMonth()];
@@ -1628,16 +1650,15 @@ function progWeek(){
   const title=(act,id,txt)=>`<button class="t" style="background:none;border:0;padding:0;text-align:left;font-weight:600;font-size:15px" data-act="${act}" data-id="${id}">${esc(txt)}</button>`;
   const rows=[...Array(7)].map((_,i)=>{
     const k=dk(addD(mon,i)),d=pd(k);
-    const ps=activePlans().filter(p=>occursOn(p.rec,k)),ws=S.workouts.filter(w=>calendarOn(w,k)),used=new Set();
+    const ps=activePlans().filter(p=>occursOn(p.rec,k)),ws=S.workouts.filter(w=>calendarOn(w,k));
     const items=ps.map(p=>{
-      const ok=planDone(p,k);planned++;if(ok)done++;
-      ws.forEach(w=>{if(w.planId===p.id||(!w.planId&&w.type===p.type))used.add(w.id)});
+      const m=planMatch(p,k),ok=!!m;planned++;if(ok)done++;
       const t=WT[p.type]||WT.other;
-      const st=ok?'<span class="tag">feito</span>':k<tk?'<span class="small" style="color:var(--bad)">não feito</span>':`<span class="muted small">${k===tk?'hoje':'planejado'}</span>`;
+      const st=ok?`<span class="tag">feito</span>${m.same?'':`<span class="muted small">na ${DOW[(pd(m.w.date).getDay()+6)%7]}</span>`}`:k<tk?'<span class="small" style="color:var(--bad)">não feito</span>':`<span class="muted small">${k===tk?'hoje':'planejado'}</span>`;
       return `<div class="pw-i"><span class="wk-type"><i style="background:${cv(t.c)}"></i>${t.n}</span><div class="pw-l">${title('plan-edit',p.id,p.title||t.n)}${st}${!ok&&k<=tk?`<button class="btn small" data-act="plan-log" data-id="${p.id}" data-k="${k}">Registrar</button>`:''}</div></div>`;
     });
-    ws.filter(w=>!used.has(w.id)).forEach(w=>{extra++;const t=WT[w.type]||WT.other;
-      items.push(`<div class="pw-i"><span class="wk-type"><i style="background:${cv(t.c)}"></i>${w.type==='other'&&w.sport?esc(sportPT(w.sport)):t.n}</span><div class="pw-l">${title('w-edit',w.id,w.title||t.n)}<span class="tag">feito</span><span class="muted small">fora do programa</span></div></div>`)});
+    ws.forEach(w=>{const o=planCover(w);if(o&&o.k===k)return;if(!o)extra++;const t=WT[w.type]||WT.other;
+      items.push(`<div class="pw-i"><span class="wk-type"><i style="background:${cv(t.c)}"></i>${w.type==='other'&&w.sport?esc(sportPT(w.sport)):t.n}</span><div class="pw-l">${title('w-edit',w.id,w.title||t.n)}<span class="tag">feito</span><span class="muted small">${o?`conta para ${DOW[(pd(o.k).getDay()+6)%7]}`:'fora do programa'}</span></div></div>`)});
     if(!items.length)items.push(`<div class="pw-i"><div class="pw-l"><span class="muted">Descanso</span><button class="btn ghost small" data-act="plan-new" data-wd="${i}">${ic('plus')}Programar</button></div></div>`);
     return `<div class="wk-card ${k===tk?'pw-today':''}"><div class="wk-date"><b>${d.getDate()}</b><span>${DOW[i]}</span></div><div style="flex:1;min-width:0;align-self:center">${items.join('')}</div></div>`;
   });
@@ -1655,7 +1676,7 @@ function plansCard(){
   if(recs.length)h+=progWeek();
   if(recs.length)h+=`<div class="group-h">Treinos do programa</div><div class="list">`+recs.map(p=>{
     const t=WT[p.type]||WT.other;
-    const nx=occursOn(p.rec,tk)&&!planDone(p,tk)?tk:nextOcc(p.rec,tk);
+    let nx=occursOn(p.rec,tk)&&!planDone(p,tk)?tk:nextOcc(p.rec,tk);for(let i=0;nx&&i<8&&planDone(p,nx);i++)nx=nextOcc(p.rec,nx);
     const ex=(p.exercises||[]).filter(e=>e.name);
     return `<div class="row plan-row ${p.active===false?'paused':''}"><span class="pdot" style="background:${cv(t.c)}"></span>
       <div class="main"><button class="t" data-act="plan-edit" data-id="${p.id}">${esc(p.title||t.n)}</button>

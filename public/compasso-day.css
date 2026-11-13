@@ -116,17 +116,14 @@
 /* prazo: texto preto no amarelo e no verde (14,8:1 e 10,6:1); as cores da regra não mudam */
 .due-yellow,.due-green{color:#000}
 
-/* Cor como texto: o mesmo tom, escurecido só no tema claro para ser legível (4,5:1; números grandes 3:1).
+/* Cores da paleta do design system, iguais nos dois temas.
    Categoria como rótulo fica em tinta; a cor vive no ponto e na barra. */
-:root{--hab-t:#D6003D;--tar-t:#008529;--tre-t:#0B74A6;--lime-t:#4F9300;--indigo-t:#6C6AE8}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hab-t:var(--hab);--tar-t:var(--tar);--tre-t:var(--tre);--lime-t:var(--k-lime);--indigo-t:var(--k-indigo)}}
-:root[data-theme="dark"]{--hab-t:var(--hab);--tar-t:var(--tar);--tre-t:var(--tre);--lime-t:var(--k-lime);--indigo-t:var(--k-indigo)}
-.km-v{color:var(--hab-t)}
-.kpis-cor .k-hab .v,.kpis-cor .k-red .v{color:var(--hab-t)}
-.kpis-cor .k-tar .v{color:var(--tar-t)}
-.kpis-cor .k-tre .v,.kpis-cor .k-blue .v{color:var(--tre-t)}
-.kpis-cor .k-lime .v{color:var(--lime-t)}
-.kpis-cor .k-indigo .v{color:var(--indigo-t)}
+.km-v{color:var(--hab)}
+.kpis-cor .k-hab .v,.kpis-cor .k-red .v{color:var(--hab)}
+.kpis-cor .k-tar .v{color:var(--tar)}
+.kpis-cor .k-tre .v,.kpis-cor .k-blue .v{color:var(--tre)}
+.kpis-cor .k-lime .v{color:var(--k-lime)}
+.kpis-cor .k-indigo .v{color:var(--k-indigo)}
 .gl-c,.gcat{color:var(--ink-2)}
 .gl-p{color:var(--ink)}
 .gl-dot{color:var(--gc);background:var(--gc)}
