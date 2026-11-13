@@ -459,6 +459,10 @@ details.tbl td,details.tbl th{padding:4px 12px 4px 0;text-align:left;border-bott
 .dcell.off[aria-checked="true"]{opacity:1;box-shadow:none;background:var(--hc,var(--hab))}
 .plan-row{align-items:center}
 .plan-row.paused{opacity:.55}
+.pw-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 2px}.pw-h .actions{flex-wrap:nowrap;flex:none;gap:6px}
+.pw-l{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-top:2px}.pw-i+.pw-i{margin-top:10px}
+.pw-today .wk-date{background:var(--accent);color:var(--accent-ink)}.pw-today .wk-date span{color:inherit;opacity:.8}
+.pw+.group-h{margin-top:22px}
 .pdot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:0}
 @media (max-width:1100px){
   .bento{align-items:stretch}
@@ -1574,20 +1578,43 @@ function wCard(w){
     <button class="t" style="background:none;border:0;padding:0;text-align:left;font-weight:600;font-size:15px;margin-top:2px" data-act="w-edit" data-id="${w.id}">${esc(w.title||t.n)}</button>
     ${w.endDate?`<div class="src">${rangeLabel(w.date,w.endDate)}</div>`:''}${wSummary(w)}${w.notes?`<div class="muted small" style="margin-top:4px">${esc(w.notes)}</div>`:''}</div></div>`;
 }
+function progWeek(){
+  const off=UI.progOff||0,tk=today(),mon=addD(monOf(new Date()),off*7);
+  let planned=0,done=0,extra=0;
+  const title=(act,id,txt)=>`<button class="t" style="background:none;border:0;padding:0;text-align:left;font-weight:600;font-size:15px" data-act="${act}" data-id="${id}">${esc(txt)}</button>`;
+  const rows=[...Array(7)].map((_,i)=>{
+    const k=dk(addD(mon,i)),d=pd(k);
+    const ps=activePlans().filter(p=>occursOn(p.rec,k)),ws=S.workouts.filter(w=>calendarOn(w,k)),used=new Set();
+    const items=ps.map(p=>{
+      const ok=planDone(p,k);planned++;if(ok)done++;
+      ws.forEach(w=>{if(w.planId===p.id||(!w.planId&&w.type===p.type))used.add(w.id)});
+      const t=WT[p.type]||WT.other;
+      const st=ok?'<span class="tag">feito</span>':k<tk?'<span class="small" style="color:var(--bad)">não feito</span>':`<span class="muted small">${k===tk?'hoje':'planejado'}</span>`;
+      return `<div class="pw-i"><span class="wk-type"><i style="background:${cv(t.c)}"></i>${t.n}</span><div class="pw-l">${title('plan-edit',p.id,p.title||t.n)}${st}${!ok&&k<=tk?`<button class="btn small" data-act="plan-log" data-id="${p.id}" data-k="${k}">Registrar</button>`:''}</div></div>`;
+    });
+    ws.filter(w=>!used.has(w.id)).forEach(w=>{extra++;const t=WT[w.type]||WT.other;
+      items.push(`<div class="pw-i"><span class="wk-type"><i style="background:${cv(t.c)}"></i>${w.type==='other'&&w.sport?esc(sportPT(w.sport)):t.n}</span><div class="pw-l">${title('w-edit',w.id,w.title||t.n)}<span class="tag">feito</span><span class="muted small">fora do programa</span></div></div>`)});
+    if(!items.length)items.push(`<div class="pw-i"><div class="pw-l"><span class="muted">Descanso</span><button class="btn ghost small" data-act="plan-new" data-wd="${i}">${ic('plus')}Programar</button></div></div>`);
+    return `<div class="wk-card ${k===tk?'pw-today':''}"><div class="wk-date"><b>${d.getDate()}</b><span>${DOW[i]}</span></div><div style="flex:1;min-width:0;align-self:center">${items.join('')}</div></div>`;
+  });
+  const lbl=off===0?'Esta semana':off===1?'Próxima semana':`Semana de ${fmtD(dk(mon))}`;
+  return `<div class="pw-h"><div class="group-h" style="margin:0">${lbl} <span class="mono">${done}/${planned} feito${planned===1?'':'s'}${extra?` · +${extra} extra${extra===1?'':'s'}`:''}</span></div>
+    <div class="actions"><button class="iconbtn" aria-label="Semana anterior" data-act="pw-nav" data-d="-1">${ic('left')}</button>${off?'<button class="btn small" data-act="pw-nav" data-d="0">Esta semana</button>':''}<button class="iconbtn" aria-label="Próxima semana" data-act="pw-nav" data-d="1">${ic('right')}</button></div></div>
+    <div class="list pw">${rows.join('')}</div>`;
+}
 function plansCard(){
   const ps=[...(S.plans||[])].sort((a,b)=>(a.active===false)-(b.active===false)||String(a.createdAt).localeCompare(String(b.createdAt)));
-  const mon=monOf(new Date()),tk=today();
+  const tk=today();
   let h=`<section class="card" style="margin-bottom:16px"><div class="card-h"><div><h2>Programa</h2><div class="src" style="margin-top:2px">Treinos recorrentes aparecem planejados na agenda e na visão geral</div></div><button class="btn" data-act="plan-new">${ic('plus')}Treino recorrente</button></div>`;
   if(!ps.length)return h+emptyBox('work','Nenhum treino recorrente','Crie as sessões do seu programa (ex.: Push seg/qui, Pull ter/sex, corrida sáb) e elas passam a aparecer na agenda nos dias certos.')+`</section>`;
-  h+=`<div class="list">`+ps.map(p=>{
-    const t=WT[p.type]||WT.other;const wk=[...Array(7)].map((_,i)=>dk(addD(mon,i))).filter(k=>occursOn(p.rec,k));
-    const dn=wk.filter(k=>planDone(p,k)).length;const nx=occursOn(p.rec,tk)&&!planDone(p,tk)?tk:nextOcc(p.rec,tk);
+  h+=progWeek();
+  h+=`<div class="group-h">Treinos do programa</div><div class="list">`+ps.map(p=>{
+    const t=WT[p.type]||WT.other;
+    const nx=occursOn(p.rec,tk)&&!planDone(p,tk)?tk:nextOcc(p.rec,tk);
     const ex=(p.exercises||[]).filter(e=>e.name);
     return `<div class="row plan-row ${p.active===false?'paused':''}"><span class="pdot" style="background:${cv(t.c)}"></span>
       <div class="main"><button class="t" data-act="plan-edit" data-id="${p.id}">${esc(p.title||t.n)}</button>
-      <div class="meta"><span class="tag rec">↻ ${esc(recLabel(p.rec))}</span>${p.active===false?'<span class="tag">pausado</span>':nx?`<span class="muted small">próximo: ${nx===tk?'hoje':`${DOW[(pd(nx).getDay()+6)%7]} ${fmtD(nx)}`}</span>`:'<span class="muted small">encerrado</span>'}${ex.length?`<span class="muted small">· ${ex.length} exercício${ex.length>1?'s':''}</span>`:''}</div></div>
-      ${wk.length&&p.active!==false?`<span class="streak" title="Sessões desta semana"><b>${dn}</b>/${wk.length} semana</span>`:''}
-      ${p.active!==false&&nx===tk?`<button class="btn small" data-act="plan-log" data-id="${p.id}" data-k="${tk}">Registrar</button>`:''}</div>`}).join('')+`</div></section>`;
+      <div class="meta"><span class="tag rec">↻ ${esc(recLabel(p.rec))}</span>${p.active===false?'<span class="tag">pausado</span>':nx?`<span class="muted small">próximo: ${nx===tk?'hoje':`${DOW[(pd(nx).getDay()+6)%7]} ${fmtD(nx)}`}</span>`:'<span class="muted small">encerrado</span>'}${ex.length?`<span class="muted small">· ${ex.length} exercício${ex.length>1?'s':''}</span>`:''}</div></div></div>`}).join('')+`</div></section>`;
   return h;
 }
 function vTreinos(){
@@ -1998,8 +2025,8 @@ function readDraft(){
     if(el.dataset.set!=null){const s=e.sets[+el.dataset.set];if(s)s[k]=el.value}else e[k]=el.value});
 }
 
-function planModal(p){
-  const d=p?JSON.parse(JSON.stringify(p)):{type:'strength',title:'',exercises:[{name:'',sets:[{reps:'',kg:''}]}],durMin:'',km:'',timeSec:0,notes:'',rec:{freq:'weekly',every:1,days:[],start:today(),until:''},active:true};
+function planModal(p,wd){
+  const d=p?JSON.parse(JSON.stringify(p)):{type:'strength',title:'',exercises:[{name:'',sets:[{reps:'',kg:''}]}],durMin:'',km:'',timeSec:0,notes:'',rec:{freq:'weekly',every:1,days:wd!=null&&wd!==''?[+wd]:[],start:today(),until:''},active:true};
   UI.draftMode='plan';UI.draft={...d,date:today()};if(!UI.draft.exercises||!UI.draft.exercises.length)UI.draft.exercises=UI.draft.type==='strength'?[{name:'',sets:[{reps:'',kg:''}]}]:[];renderWorkout();
 }
 function planLog(p,key){
@@ -2147,7 +2174,7 @@ const A={
   'push-test':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.testPush(),el,'Aviso enviado. Confira as notificações do aparelho.'),
   'cloud-strava-connect':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.authorizeStrava(),el),
   'cloud-strava-disconnect':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.disconnectStrava(),el,'Strava desconectado.'),
-  'plan-new':()=>planModal(),'plan-edit':d=>planModal((S.plans||[]).find(x=>x.id===d.id)),'plan-del':d=>delUndo('plans',d.id,'Treino recorrente excluído'),
+  'plan-new':d=>planModal(null,d&&d.wd),'pw-nav':d=>{UI.progOff=+d.d===0?0:(UI.progOff||0)+(+d.d);quietRender()},'plan-edit':d=>planModal((S.plans||[]).find(x=>x.id===d.id)),'plan-del':d=>delUndo('plans',d.id,'Treino recorrente excluído'),
   'plan-log':d=>planLog((S.plans||[]).find(x=>x.id===d.id),d.k),
   'cat-add':()=>{readCatDraft();const used=UI.catDraft.map(c=>+c.c);const c=[1,2,3,4,5,6,7,8].find(i=>!used.includes(i))||1;UI.catDraft.push({id:'c'+uid(),name:'Nova categoria',c});renderSettings()},
   'g-connect':()=>{const L=window.CompassoLocal;if(!L)return;L.google.connect().then(()=>{toast('Google Calendar conectado');if($('#sheet form[data-form="settings"]')){readCatDraft();renderSettings()}}).catch(e=>toast(e.message||'Não foi possível conectar ao Google'))},
