@@ -124,6 +124,8 @@ Mostra os eventos da sua agenda do Google dentro do Compasso, só para leitura. 
 
 Importa seus treinos do Strava sozinho, sempre que você abre o Compasso ou clica em **Treinos → Sincronizar Strava**. Cada pessoa cria o próprio app no Strava, porque apps novos do Strava só aceitam o próprio dono.
 
+Cada atividade entra com o tipo certo: musculação, corrida, natação, pedal, caminhada (trilhas incluídas) ou outro, com o nome do esporte (yoga, futebol, tênis...). Também vêm frequência cardíaca, elevação, calorias e esforço, quando o Strava tiver esses dados. Treinos importados antes desta versão são reconhecidos pelo esporte original.
+
 1. Entre em **https://www.strava.com/settings/api** e crie um app:
    - **Nome do aplicativo:** `Compasso` (ou o que quiser);
    - **Categoria:** qualquer uma;

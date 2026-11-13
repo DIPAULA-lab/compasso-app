@@ -440,7 +440,9 @@ class Strava:
             'sport_type': a.get('sport_type') or a.get('type'),
             'start_local': a.get('start_date_local'),
             'summary': {'moving_time': a.get('moving_time'), 'distance': a.get('distance'),
-                        'total_calories': cal.get(str(a['id'])) or 0, 'relative_effort': a.get('suffer_score') or 0},
+                        'total_calories': cal.get(str(a['id'])) or 0, 'relative_effort': a.get('suffer_score') or 0,
+                        'average_heartrate': a.get('average_heartrate') or 0, 'max_heartrate': a.get('max_heartrate') or 0,
+                        'total_elevation_gain': a.get('total_elevation_gain') or 0},
         } for a in lst]
 
     def disconnect(self):
