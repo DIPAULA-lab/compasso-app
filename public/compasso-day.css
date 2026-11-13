@@ -132,3 +132,12 @@
 .gl-dot{color:var(--gc);background:var(--gc)}
 .gtitle button{color:var(--ink)}
 .dp-sum b,.dp-sum span{text-wrap:pretty}
+
+/* Início no computador: plano do dia e coluna da direita terminam na mesma linha */
+@media (min-width:1181px){
+ .home-day{align-items:stretch}
+ .home-day>div{display:flex;flex-direction:column;min-width:0}
+ .home-day>div>.dp{flex:1}
+ .home-rail{position:static}
+ .home-rail .rings-w{flex:1;align-content:center}
+}

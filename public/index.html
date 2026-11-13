@@ -458,6 +458,8 @@ details.tbl td,details.tbl th{padding:4px 12px 4px 0;text-align:left;border-bott
 .dcell.off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line-2);opacity:.7}
 .dcell.off[aria-checked="true"]{opacity:1;box-shadow:none;background:var(--hc,var(--hab))}
 .plan-row{align-items:center}
+.rhy .row .iconbtn{width:28px;height:28px;flex:none;background:none}.rhy .row .iconbtn:hover{background:var(--fill)}.rhy .t{font-weight:600}
+@media (max-width:760px){.rhy .row{flex-wrap:wrap;row-gap:8px}.rhy .row .main{flex:1 1 calc(100% - 30px)}.rhy .row .btn{margin-left:21px}.rhy .row .iconbtn{margin-left:auto}}
 .plan-row.paused{opacity:.55}
 .pw-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 2px}.pw-h .actions{flex-wrap:nowrap;flex:none;gap:6px}
 .pw-l{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-top:2px}.pw-i+.pw-i{margin-top:10px}
@@ -1137,6 +1139,45 @@ function mapStrava(a){
 }
 const weekTarget=()=>+S.settings.workoutTarget||4;
 const wThisWeek=()=>{const m=dk(monOf(new Date()));return S.workouts.filter(w=>w.date>=m&&w.date<=today())};
+/* ritmo real: últimas 8 semanas completas; a semana atual não entra para não puxar a média para baixo */
+function rhythm(){
+  const N=8,mon=monOf(new Date()),m0=addD(mon,-N*7),from=dk(m0),to=dk(addD(mon,-1));
+  const ws=S.workouts.filter(w=>w.date>=from&&w.date<=to);
+  const wk=d=>Math.floor(Math.round((pd(d)-m0)/864e5)/7),wd=d=>(pd(d).getDay()+6)%7;
+  const med=a=>{a=a.filter(v=>v>0).sort((x,y)=>x-y);return a.length?a[a.length>>1]:0};
+  const types=Object.keys(WT).filter(k=>k!=='other').map(k=>{
+    const a=ws.filter(w=>w.type===k);if(a.length<3)return null;
+    const byDay=[...Array(7)].map((_,i)=>new Set(a.filter(w=>wd(w.date)===i).map(w=>wk(w.date))).size);
+    const freq=Math.max(1,Math.round(a.length/N));
+    const days=byDay.map((n,i)=>[n,i]).filter(([n])=>n>=3).sort((x,y)=>y[0]-x[0]).slice(0,freq).map(x=>x[1]).sort((x,y)=>x-y);
+    const next=[...Array(7)].map((_,i)=>dk(addD(mon,7+i)));
+    const ps=activePlans().filter(p=>p.type===k);
+    const pdays=[...Array(7).keys()].filter(i=>ps.some(p=>occursOn(p.rec,next[i])));
+    return {k,n:a.length,freq,days,pdays,ps,durMin:med(a.map(wMin)),km:med(a.map(w=>+w.km||0))};
+  }).filter(Boolean).sort((a,b)=>b.n-a.n);
+  return {N,avg:ws.length/N,types};
+}
+const rhyHidden=()=>{try{return JSON.parse(localStorage.getItem('compasso:rhythm-hide')||'[]')}catch{return []}};
+function rhythmBlock(){
+  const r=rhythm(),hid=rhyHidden(),tg=weekTarget(),sug=clamp(Math.round(r.avg),1,14);
+  const dl=a=>a.map(i=>DOW[i]).join(', ').replace(/, ([^,]*)$/,' e $1');
+  const hide=id=>`<button class="iconbtn" aria-label="Ocultar sugestão" title="Ocultar" data-act="rhy-hide" data-id="${id}">${ic('x')}</button>`;
+  const rows=[];
+  if(r.avg>=.5&&sug!==tg&&!hid.includes('meta:'+sug))rows.push(`<div class="row plan-row" data-key="rhy:meta"><span class="pdot" style="background:var(--ink-3)"></span>
+    <div class="main"><span class="t">Meta semanal</span><div class="meta"><span class="muted small">média de ${nf(r.avg,1)} treinos por semana · meta atual ${tg}</span></div></div>
+    <button class="btn small" data-act="w-target" data-v="${sug}">Usar ${sug} por semana</button>${hide('meta:'+sug)}</div>`);
+  r.types.forEach(t=>{
+    const T=WT[t.k],miss=t.days.filter(i=>!t.pdays.includes(i)),id=`${t.k}:${t.days.join('')}`;
+    if(t.pdays.length>=t.freq&&!miss.length||hid.includes(id))return;
+    const what=`${t.freq}× por semana · ${t.days.length?`costuma ser ${dl(t.days)}`:'sem dia fixo'}`;
+    const where=t.pdays.length?`no programa: ${dl(t.pdays)}`:'fora do programa';
+    const btn=t.pdays.length&&t.days.length?`<button class="btn small" data-act="plan-edit" data-id="${t.ps[0].id}">Rever dias</button>`
+      :`<button class="btn small" data-act="plan-seed" data-type="${t.k}" data-days="${t.days.join(',')}" data-dur="${t.durMin||''}" data-km="${t.km||''}">${t.days.length?'Programar':'Criar modelo'}</button>`;
+    rows.push(`<div class="row plan-row" data-key="rhy:${t.k}"><span class="pdot" style="background:${cv(T.c)}"></span>
+      <div class="main"><span class="t">${T.n}</span><div class="meta"><span class="muted small">${what} · ${where}</span></div></div>${btn}${hide(id)}</div>`);
+  });
+  return rows.length?`<div class="group-h">Do seu histórico <span class="mono">últimas ${r.N} semanas</span></div><div class="list rhy">${rows.join('')}</div>`:'';
+}
 
 /* ============ connectors ============ */
 function mcpMsg(server,e){
@@ -1234,14 +1275,17 @@ function render(){
    <span title="${sT}"><i class="dot ${SV.off?'':SV.err?'err':SV.at?'ok':'wait'}"></i><em>${sT}</em></span>`;
   const main=$('#main');main.dataset.area=$('#modal').dataset.area=UI.view;
   // preserve inputs across re-render
+  const sy=window.scrollY;
   const act=document.activeElement;const aid=act&&main.contains(act)?act.id:null;
   const vals={};main.querySelectorAll('input[id],select[id],textarea[id]').forEach(el=>vals[el.id]=el.value);
   let sel=null;if(aid&&act.setSelectionRange){try{sel=[act.selectionStart,act.selectionEnd]}catch{}}
   const fn={hoje:vHoje,habitos:vHabitos,tarefas:vTarefas,calendario:vCal,treinos:vTreinos,stats:vStats}[UI.view]||vHoje;
   morph(main,(srvOff&&dbState!=='off'?`<div class="banner err"><span><b>Servidor do Compasso fora do ar.</b> Alterações feitas agora não serão salvas. Inicie o servidor; a página se reconecta sozinha.</span></div>`:'')+(dbState==='off'?`<div class="banner err"><b>Modo local.</b> Esta visualização não consegue salvar dados; o que você fizer aqui some ao recarregar.</div>`:'')+fn(),anim);
   Object.entries(vals).forEach(([id,v])=>{const el=document.getElementById(id);if(!el||el.dataset.keep==='no')return;if(el.tagName==='SELECT'&&![...el.options].some(o=>o.value===v))return;el.value=v});
-  if(aid){const el=document.getElementById(aid);if(el){el.focus();if(sel&&el.setSelectionRange){try{el.setSelectionRange(...sel)}catch{}}}}
+  if(aid){const el=document.getElementById(aid);if(el){el.focus({preventScroll:true});if(sel&&el.setSelectionRange){try{el.setSelectionRange(...sel)}catch{}}}}
   drawCharts();placeNavInd();
+  // gráficos ficam vazios durante a troca e a página encolhe; o Safari não devolve a rolagem sozinho
+  if(Math.abs(window.scrollY-sy)>1)window.scrollTo(0,sy);
 }
 // estado vazio: ícone, o que falta e o próximo passo
 const emptyBox=(i,t,sub='',act='')=>`<div class="empty">${i?`<span class="e-ic" aria-hidden="true">${ic(i)}</span>`:''}<b class="e-t">${t}</b>${sub?`<span class="e-s">${sub}</span>`:''}${act}</div>`;
@@ -1606,7 +1650,7 @@ function plansCard(){
   const ps=[...(S.plans||[])].sort((a,b)=>(a.active===false)-(b.active===false)||String(a.createdAt).localeCompare(String(b.createdAt)));
   const tk=today();
   let h=`<section class="card" style="margin-bottom:16px"><div class="card-h"><div><h2>Programa</h2><div class="src" style="margin-top:2px">Treinos recorrentes aparecem na agenda; modelos ficam prontos para qualquer dia</div></div><button class="btn" data-act="plan-new">${ic('plus')}Treino do programa</button></div>`;
-  if(!ps.length)return h+emptyBox('work','Nenhum treino no programa','Crie as sessões do seu programa (ex.: Push seg/qui, corrida sáb) para vê-las na agenda, ou um modelo sem dia fixo para registrar quando quiser.')+`</section>`;
+  if(!ps.length)return h+rhythmBlock()+emptyBox('work','Nenhum treino no programa','Crie as sessões do seu programa (ex.: Push seg/qui, corrida sáb) para vê-las na agenda, ou um modelo sem dia fixo para registrar quando quiser.')+`</section>`;
   const recs=ps.filter(p=>hasRec(p.rec)),mods=ps.filter(p=>!hasRec(p.rec));
   if(recs.length)h+=progWeek();
   if(recs.length)h+=`<div class="group-h">Treinos do programa</div><div class="list">`+recs.map(p=>{
@@ -1623,7 +1667,7 @@ function plansCard(){
       <div class="main"><button class="t" data-act="plan-edit" data-id="${p.id}">${esc(p.title||t.n)}</button>
       <div class="meta"><span class="tag">${t.n}</span>${ex.length?`<span class="muted small">${ex.length} exercício${ex.length>1?'s':''}</span>`:''}<span class="muted small">${last?`última vez ${fmtD(last.date)}`:'ainda não usado'}</span></div></div>
       ${p.active!==false?`<button class="btn small" data-act="plan-log" data-id="${p.id}" data-k="${tk}">Registrar</button>`:''}</div>`}).join('')+`</div>`;
-  return h+`</section>`;
+  return h+rhythmBlock()+`</section>`;
 }
 function vTreinos(){
   const ws=sortedW();const ww=wThisWeek();const tk=today();const mStart=tk.slice(0,8)+'01';
@@ -2034,8 +2078,9 @@ function readDraft(){
     if(el.dataset.set!=null){const s=e.sets[+el.dataset.set];if(s)s[k]=el.value}else e[k]=el.value});
 }
 
-function planModal(p,wd){
+function planModal(p,wd,seed){
   const d=p?JSON.parse(JSON.stringify(p)):{type:'strength',title:'',exercises:[{name:'',sets:[{reps:'',kg:''}]}],durMin:'',km:'',timeSec:0,notes:'',rec:{freq:'weekly',every:1,days:wd!=null&&wd!==''?[+wd]:[],start:today(),until:''},active:true};
+  if(!p&&seed){d.type=seed.type;if(seed.type!=='strength')d.exercises=[];d.durMin=seed.durMin||'';d.km=seed.km||'';d.rec=seed.days.length?{...d.rec,days:seed.days}:{freq:'none'}}
   UI.draftMode='plan';UI.draft={...d,date:today()};if(!UI.draft.exercises||!UI.draft.exercises.length)UI.draft.exercises=UI.draft.type==='strength'?[{name:'',sets:[{reps:'',kg:''}]}]:[];renderWorkout();
 }
 function lastEx(name,exclude){
@@ -2190,7 +2235,10 @@ const A={
   'push-test':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.testPush(),el,'Aviso enviado. Confira as notificações do aparelho.'),
   'cloud-strava-connect':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.authorizeStrava(),el),
   'cloud-strava-disconnect':(d,el)=>cloudAction(()=>window.CompassoLocal.cloud.disconnectStrava(),el,'Strava desconectado.'),
-  'plan-new':d=>planModal(null,d&&d.wd),'pw-nav':d=>{UI.progOff=+d.d===0?0:(UI.progOff||0)+(+d.d);quietRender()},'plan-edit':d=>planModal((S.plans||[]).find(x=>x.id===d.id)),'plan-del':d=>delUndo('plans',d.id,'Treino recorrente excluído'),
+  'plan-new':d=>planModal(null,d&&d.wd),
+  'plan-seed':d=>planModal(null,null,{type:d.type,days:d.days?d.days.split(',').map(Number):[],durMin:+d.dur||'',km:+d.km||''}),
+  'w-target':d=>{const old=weekTarget();putMeta('settings',{...S.settings,workoutTarget:+d.v});toast(`Meta: ${d.v} treinos por semana`,{label:'Desfazer',fn:()=>putMeta('settings',{...S.settings,workoutTarget:old})})},
+  'rhy-hide':d=>{try{localStorage.setItem('compasso:rhythm-hide',JSON.stringify([...rhyHidden(),d.id].slice(-40)))}catch{}quietRender()},'pw-nav':d=>{UI.progOff=+d.d===0?0:(UI.progOff||0)+(+d.d);quietRender()},'plan-edit':d=>planModal((S.plans||[]).find(x=>x.id===d.id)),'plan-del':d=>delUndo('plans',d.id,'Treino recorrente excluído'),
   'plan-log':d=>planLog((S.plans||[]).find(x=>x.id===d.id),d.k),
   'cat-add':()=>{readCatDraft();const used=UI.catDraft.map(c=>+c.c);const c=[1,2,3,4,5,6,7,8].find(i=>!used.includes(i))||1;UI.catDraft.push({id:'c'+uid(),name:'Nova categoria',c});renderSettings()},
   'g-connect':()=>{const L=window.CompassoLocal;if(!L)return;L.google.connect().then(()=>{toast('Google Calendar conectado');if($('#sheet form[data-form="settings"]')){readCatDraft();renderSettings()}}).catch(e=>toast(e.message||'Não foi possível conectar ao Google'))},
