@@ -838,7 +838,7 @@ input[type=text],input[type=password],input[type=number],input[type=date],input[
     <div class="nav" id="nav"></div>
     <div class="side-foot">
       <div class="conn" id="conn" role="status"></div>
-      <button class="btn theme-t" data-act="theme-toggle" id="theme-t"></button>
+      <button class="fab" data-act="add-menu" aria-label="Adicionar" title="Adicionar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button class="btn theme-t" data-act="theme-toggle" id="theme-t"></button>
       <button class="btn" data-act="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Ajustes</button>
     </div>
   </nav>
@@ -874,19 +874,20 @@ const secFmt=s=>{s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.floor(s%36
 const parseTime=str=>{if(!str)return 0;const p=String(str).trim().split(':').map(Number);if(p.some(isNaN))return 0;return p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:p[0]*60};
 const paceFmt=(sec,km)=>km>0?secFmt(sec/km)+'/km':'–';
 const I={
+  home:'<path d="M4.5 10.3 12 4.2l7.5 6.1v8.7a1.5 1.5 0 0 1-1.5 1.5h-3.6v-5.3a1 1 0 0 0-1-1h-2.8a1 1 0 0 0-1 1v5.3H6a1.5 1.5 0 0 1-1.5-1.5z"/>',
   today:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   habits:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/>',
   tasks:'<rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><path d="M8 12.2l2.8 2.8 5.2-6"/>',
   cal:'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
   work:'<path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/>',
   stats:'<path d="M3 20.5h18M6 17V11M11 17V5M16 17v-8M21 17v-4"/>',
-  plus:'<path d="M12 5v14M5 12h14"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',flag:'<path d="M5.5 21V4.5M5.5 4.5h11.2l-2 4 2 4H5.5"/>',
   check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   left:'<path d="M15 5l-7 7 7 7"/>',right:'<path d="M9 5l7 7-7 7"/>',
   sync:'<path d="M20 11a8 8 0 0 0-14.3-4.9L4 8M4 13a8 8 0 0 0 14.3 4.9L20 16M4 4v4h4M20 20v-4h-4"/>',
   edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',
 };
-const ic=(n,w=2)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+const ic=(n,w=1.6)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
 const CHECK=ic('check',3);
 
 /* ============ recurrence ============ */
@@ -976,7 +977,7 @@ function planWeek(mon){
 const planMatch=(p,key)=>planWeek(dk(monOf(pd(key)))).done.get(p.id+'|'+key)||null;
 const planCover=w=>planWeek(dk(monOf(pd(w.date)))).cover.get(w.id)||null;
 function planDone(p,key){return !!planMatch(p,key)}
-const activePlans=()=>(S.plans||[]).filter(p=>p.active!==false&&hasRec(p.rec));
+const activePlans=()=>[];
 const plannedOn=key=>activePlans().filter(p=>occursOn(p.rec,key)&&!planDone(p,key));
 const taskGhosts=key=>S.tasks.filter(x=>!x.done&&hasRec(x.rec)&&x.due&&key>x.due&&occursOn(x.rec,key));
 
@@ -1342,7 +1343,7 @@ async function syncStrava(manual){
 }
 
 /* ============ rendering ============ */
-const VIEWS=[['hoje','Início','today'],['habitos','Hábitos','habits'],['tarefas','Tarefas','tasks'],['calendario','Agenda','cal'],['treinos','Treinos','work'],['stats','Resumo','stats']];
+const VIEWS=[['hoje','Início','home'],['calendario','Agenda','cal'],['stats','Progresso','stats']];
 let rq=0;
 function schedule(){if(rq)return;rq=requestAnimationFrame(()=>{rq=0;render()})}
 function render(){
@@ -1362,7 +1363,7 @@ function render(){
   const act=document.activeElement;const aid=act&&main.contains(act)?act.id:null;
   const vals={};main.querySelectorAll('input[id],select[id],textarea[id]').forEach(el=>vals[el.id]=el.value);
   let sel=null;if(aid&&act.setSelectionRange){try{sel=[act.selectionStart,act.selectionEnd]}catch{}}
-  const fn={hoje:vHoje,habitos:vHabitos,tarefas:vTarefas,calendario:vCal,treinos:vTreinos,stats:vStats}[UI.view]||vHoje;
+  const fn={hoje:vHoje,calendario:vAgenda,stats:vProgresso}[UI.view]||vHoje;
   morph(main,(srvOff&&dbState!=='off'?`<div class="banner err"><span><b>Servidor do Compasso fora do ar.</b> Alterações feitas agora não serão salvas. Inicie o servidor; a página se reconecta sozinha.</span></div>`:'')+(dbState==='off'?`<div class="banner err"><b>Modo local.</b> Esta visualização não consegue salvar dados; o que você fizer aqui some ao recarregar.</div>`:'')+fn(),anim);
   Object.entries(vals).forEach(([id,v])=>{const el=document.getElementById(id);if(!el||el.dataset.keep==='no')return;if(el.tagName==='SELECT'&&![...el.options].some(o=>o.value===v))return;el.value=v});
   if(aid){const el=document.getElementById(aid);if(el){el.focus({preventScroll:true});if(sel&&el.setSelectionRange){try{el.setSelectionRange(...sel)}catch{}}}}
@@ -1378,41 +1379,36 @@ function vhead(eyebrow,title,actions=''){return `<header class="vh"><div class="
 const tn=s=>esc(s).replace(/&#?\w+;|\d+(?:[.,]\d+)*/g,m=>m[0]==='&'?m:`<span class="n">${m}</span>`);
 const catOptions=(sel)=>catList().map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${esc(c.name)}</option>`).join('');
 
-/* ---- Hoje ---- */
+/* ---- Hoje: só o que fazer no dia ---- */
 function vHoje(){
-  const t=new Date(),tk=today();
-  const hs=dueToday();const hd=hs.filter(h=>doneOn(h.id,tk)).length;
-  const open=S.tasks.filter(x=>!x.done);const b=taskBuckets(open);
-  const ww=wThisWeek();const mStart=tk.slice(0,8)+'01';
-  const monthW=S.workouts.filter(w=>w.date>=mStart);
-  const dw=DOWF[t.getDay()];let h=vhead(`${dw.charAt(0).toUpperCase()+dw.slice(1)}, ${t.getDate()} de ${MESF[t.getMonth()].toLowerCase()}`,'Visão Geral',
-    `<button class="btn" data-act="habit-new">+ Hábito</button><button class="btn" data-act="task-new">+ Tarefa</button><button class="btn primary" data-act="w-new">+ Treino</button>`);
-  // rings: habits today, tasks today, workouts this week
-  const tDone=S.tasks.filter(x=>x.done&&x.doneAt&&x.doneAt.slice(0,10)===tk).length;
-  const tTot=tDone+b.today.length+b.late.length;
-  const ring=(r,p,v)=>{const C=2*Math.PI*r;return `<circle cx="100" cy="100" r="${r}" stroke="var(--${v})" style="opacity:var(--track)"/><circle cx="100" cy="100" r="${r}" stroke="var(--${v})" stroke-dasharray="${C.toFixed(1)}" style="stroke-dashoffset:${(C*(1-clamp(p,0,1))).toFixed(1)}"/>`};
-  const pH=hs.length?hd/hs.length:0,pT=tTot?tDone/tTot:0,pW=ww.length/weekTarget();
-  const rings=`<section class="card rings-w" aria-label="Progresso de hoje">
-    <svg viewBox="0 0 200 200" role="img" aria-label="Hábitos ${Math.round(pH*100)}%, tarefas ${Math.round(pT*100)}%, treinos ${Math.round(clamp(pW,0,1)*100)}%"><g fill="none" stroke-width="22" stroke-linecap="round" transform="rotate(-90 100 100)">${ring(89,pH,'hab')}${ring(64,pT,'tar')}${ring(39,pW,'tre')}</g></svg>
-    <div class="leg">
-      <button class="it" data-act="nav" data-v="habitos"><div class="l" style="color:var(--hab)">Hábitos</div><div class="v">${hd}<small>/${hs.length}</small></div><div class="s">feitos hoje</div></button>
-      <button class="it" data-act="nav" data-v="tarefas"><div class="l" style="color:var(--tar)">Tarefas</div><div class="v">${tDone}<small>/${tTot}</small></div><div class="s">${b.late.length?`<span style="color:var(--bad)">${b.late.length} atrasada${b.late.length>1?'s':''}</span>`:`hoje · ${open.length} aberta${open.length===1?'':'s'}`}</div></button>
-      <button class="it" data-act="nav" data-v="treinos"><div class="l" style="color:var(--tre)">Treinos</div><div class="v">${ww.length}<small>/${weekTarget()}</small></div><div class="s">nesta semana</div></button>
-    </div></section>`;
-  const mon=monOf(t);
-  const mAb=MES[t.getMonth()];
-  const kmTile=`<button class="card w-tile km-tile" data-act="nav" data-v="treinos" title="${esc(monthTip(monthW))} em ${MESF[t.getMonth()].toLowerCase()}"><h2 class="tile-t">Treinos em ${mAb.charAt(0).toUpperCase()+mAb.slice(1)}</h2><div class="km-v"><b>${monthW.length}</b> ${monthW.length===1?'sessão':'sessões'}</div></button>`;
-  const weekTile=`<section class="card w-tile week-tile" title="${ww.length} de ${weekTarget()} treinos nesta semana"><h2 class="tile-t">Treinos na Semana</h2>
-    <div class="wkdays">${[...Array(7)].map((_,i)=>{const k=dk(addD(mon,i));const on=S.workouts.some(w=>calendarOn(w,k));return `<div class="${k===tk?'td':''}"><i class="${on?'on':''}"></i><span>${DOW[i][0].toUpperCase()}</span></div>`}).join('')}</div></section>`;
-  h+=`<div class="home-day"><div>${dayPlanner(UI.calSel)}</div><aside class="home-rail" aria-label="Progresso">${rings}<div class="rail-tiles">${kmTile}${weekTile}</div></aside></div>`;
-  h+=goalsPanel();
-  h+=weekStrip();
-  return h;
+  const k=UI.calSel,sd=pd(k);
+  return `<header class="vh home-h"><h1>${dayName(k)}<i class="home-dot" aria-hidden="true"></i></h1><p class="home-dt"><b>${dayCap(MES[sd.getMonth()])}’${String(sd.getFullYear()).slice(2)}</b><span>${dayCap(DOWF[sd.getDay()])}</span></p></header>${briefing()}${dayPlanner(k)}`;
 }
+/* o app conta o que ainda falta, como uma frase; cada área com a sua cor; os números levam à seção */
+function briefing(){
+  const tk=today(),D=dayData(tk),h=new Date().getHours(),now=dayNow();
+  const hi=h<5||h>=18?'Boa noite':h<12?'Bom dia':'Boa tarde';
+  const evs=d=>d.items.filter(x=>x.act!=='w-edit'&&!x.plan);
+  const list=a=>a.length>1?a.slice(0,-1).join(', ')+' e '+a[a.length-1]:a[0];
+  const word=(v,one,many)=>v===1?one:many;
+  const chip=(go,color,icon,num,label)=>`<button type="button" class="bf-n" data-act="bf-go" data-t="${go}" style="--bf:var(--${color})">${ic(icon,1.8)}<b>${num}</b> ${label}</button>`;
+  const left=evs(D).filter(x=>{const m=dayMin(x.end||x.tm);return m==null||m>now}).length,tasks=D.late.length+D.open.length,habits=D.habits.filter(x=>!doneOn(x.id,tk)).length;
+  const ww=wThisWeek().length,wt=weekTarget();
+  const tre=chip('__treinos','tre','work',`${ww} de ${wt}`,word(wt,'treino','treinos'));
+  const parts=[left?chip('Compromissos','c2','cal',left,word(left,'compromisso','compromissos')):'',tasks?chip('Tarefas','tar','tasks',tasks,word(tasks,'tarefa','tarefas')):'',habits?chip('Hábitos','hab','habits',habits,word(habits,'hábito','hábitos')):''].filter(Boolean);
+  let say;
+  if(parts.length){const nx=dayNext(D.items);say=`Você ainda tem ${list(parts)} hoje. Na semana, ${tre}.${nx?` <span class="bf-next">${esc(nx.text)}</span>`:''}`}
+  else{const T=dk(addD(pd(tk),1)),E=dayData(T),te=evs(E).length,tt=E.open.length+E.ghosts.length,th=E.habits.length;
+    const tag=(color,icon,v,l)=>`<span class="bf-n" style="--bf:var(--${color})">${ic(icon,1.8)}<b>${v}</b> ${l}</span>`;
+    const tp=[te?tag('c2','cal',te,word(te,'compromisso','compromissos')):'',tt?tag('tar','tasks',tt,word(tt,'tarefa','tarefas')):'',th?tag('hab','habits',th,word(th,'hábito','hábitos')):''].filter(Boolean);
+    say=`Tudo feito por hoje. `+(tp.length?`Amanhã você tem ${list(tp)}.`:'Amanhã está livre.')+` Na semana, ${tre}.`}
+  return `<section class="brief" aria-label="Resumo do dia"><p class="bf-say">${hi}. ${say}</p></section>`;
+}
+
 function goalsPanel(){
   const gs=[...S.goals].filter(g=>!g.done).sort((a,b)=>(gDeadline(a)||'9').localeCompare(gDeadline(b)||'9'));
-  let h=`<section class="card goals-panel"><div class="card-h"><h2>Metas</h2><div class="actions"><button class="btn ghost small" data-act="nav" data-v="habitos">ver todas</button><button class="iconbtn" title="Nova meta" aria-label="Nova meta" data-act="goal-new">${ic('plus')}</button></div></div>`;
-  if(!gs.length)return h+emptyBox('habits','Nenhuma meta ativa','Ligue tarefas e hábitos a uma meta e o progresso avança sozinho.',emptyBtn('goal-new','Nova meta'))+`</section>`;
+  let h=`<section class="card goals-panel"><div class="card-h"><h2>Metas</h2><div class="actions"><button class="iconbtn" title="Nova meta" aria-label="Nova meta" data-act="goal-new">${ic('plus')}</button></div></div>`;
+  if(!gs.length)return h+emptyBox('habits','Nenhuma meta ativa','Defina um número para alcançar, como 200 km no ano ou 12 livros.',emptyBtn('goal-new','Nova meta'))+`</section>`;
   h+=`<div class="gl">`+gs.map(g=>{
     const p=goalProg(g);const c=catOf(g.cat);const gd=gDeadline(g);const dd=gd?pd(gd):null;
     const prazo=isPer(g)?`${PERN[g.period]} · até ${pad(dd.getDate())}/${pad(dd.getMonth()+1)}`:dd?`prazo ${pad(dd.getDate())}/${pad(dd.getMonth()+1)}/${dd.getFullYear()}`:'sem prazo';
@@ -1431,7 +1427,8 @@ function goalMeta(g,dd){
   const rec=isPer(g)?`<span class="gl-rec">${ic('sync',2.4)}Recorrente ${per}</span>`:`<span>Meta única</span>${dd?`<span><b class="due due-${dueLvl(dk(dd))} sm">até ${pad(dd.getDate())}/${pad(dd.getMonth()+1)}</b></span>`:''}`;
   const hab=hs.length?`<span>${hs.length>1?'Hábitos':'Hábito'}: ${hs.map(h=>tn(h.name)).join(', ')}</span>`:'<span>Sem hábito ligado</span>';
   const tk=ts.length?`<span>${ts.filter(x=>x.done).length}/${ts.length} tarefa${ts.length>1?'s':''}</span>`:'';
-  return `<div class="gl-meta">${rec}${hab}${tk}${goalMode(g)==='manual'?'<span>progresso manual</span>':''}</div>`;
+  const num=goalMode(g)==='manual'&&g.target>0?`<span>${tn(nf(gCur(g),gCur(g)%1?1:0)+' de '+nf(g.target,g.target%1?1:0)+(g.unit?' '+g.unit:''))}</span>`:'';
+  return `<div class="gl-meta">${isPer(g)?`<span>${esc(PERN[g.period]||'')}</span>`:dd?`<span>até ${pad(dd.getDate())}/${pad(dd.getMonth()+1)}</span>`:'<span>sem prazo</span>'}${num}</div>`;
 }
 const hColor=x=>x.cat?cv(catOf(x.cat).c):cv(x.c||'hab');
 function catGroups(items,keyFn){
@@ -1503,7 +1500,7 @@ function agendaItems(key){
 }
 function agendaDay(key,label){
   const it=agendaItems(key);const tasks=[...S.tasks.filter(x=>calendarOn(x,key,true)),...(key>=today()?taskGhosts(key):[])];
-  let h=`<div class="group-h">${label} <span class="mono">${fmtD(key)}</span></div>`;
+  let h=label?`<div class="group-h">${label} <span class="mono">${fmtD(key)}</span></div>`:'';
   if(!it.length&&!tasks.length)return h+`<div class="muted small" style="padding:6px 0">Nada agendado.</div>`;
   h+=it.map(x=>`<div class="it"><span class="tm">${esc(x.tm)}</span><span class="bar" style="--cc:${x.cc}"></span><div style="min-width:0;flex:1">
      ${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.title)}</a>`:x.act?`<button class="t" style="background:none;border:0;padding:0;text-align:left;font-weight:500" data-act="${x.act}" data-id="${x.id}" data-k="${key}">${esc(x.title)}</button>`:esc(x.title)}
@@ -1588,32 +1585,13 @@ function goalPartsHtml(g){
 }
 /* ---- Hábitos & metas ---- */
 function vHabitos(){
-  let h=vhead('Consistência em prol de objetivos','Hábitos & metas',`<button class="btn" data-act="goal-new">${ic('plus')}Meta</button><button class="btn primary" data-act="habit-new">${ic('plus')}Hábito</button>`);
-  // goals
-  const gs=[...S.goals].sort((a,b)=>(a.done?1:0)-(b.done?1:0)||(gDeadline(a)||'9').localeCompare(gDeadline(b)||'9'));
-  h+=`<div class="card-h"><h2>Metas</h2></div>`;
-  if(!gs.length)h+=`<div style="margin-bottom:22px">${emptyBox('habits','Sem metas','Ligue tarefas e hábitos a uma meta e o progresso avança sozinho conforme você os conclui, ou use um alvo numérico que você atualiza.',emptyBtn('goal-new','Nova meta'))}</div>`;
-  else h+=`<div class="grid3" style="margin-bottom:26px">${gs.map(g=>{
-    const p=goalProg(g);const linked=S.habits.filter(x=>x.goalId===g.id&&!x.archived);
-    const gd=gDeadline(g);const dl=gd?daysBetween(today(),gd):null;const cur=gCur(g);
-    const money=/^(R\$|US\$|\$|€|£)$/.test((g.unit||'').trim()),fv2=v=>money?`${esc(g.unit.trim())} ${nf(v,2)}`:`${nf(v,(v%1)?1:0)}${g.unit?' '+esc(g.unit):''}`;
-    return `<article class="card goal ${g.done?'done':''}" style="--gc:${cv(catOf(g.cat).c)}">
-      <div class="top"><div style="min-width:0"><span class="gcat"><i></i>${esc(catOf(g.cat).name)}</span><h3 class="gtitle"><button data-act="goal-edit" data-id="${g.id}">${tn(g.title)}</button></h3></div>
-      <span class="pct">${g.done?'✓':p==null?'–':Math.round(p*100)+'%'}</span></div>
-      <div class="meter" style="margin-top:0"><i style="width:${g.done?100:(p||0)*100}%;background:${cv(catOf(g.cat).c)}"></i></div>
-      <div class="meta" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
-        ${goalMode(g)==='manual'&&g.target>0?`<div class="gval"><b>${tn(fv2(cur))} / ${tn(fv2(g.target))}</b>${isPer(g)?`<span class="muted small">${g.period==='weekly'?'nesta semana':g.period==='monthly'?'neste mês':g.period==='quarterly'?'neste trimestre':'neste ano'}</span>`:''}<button class="btn ghost small" data-act="goal-edit" data-id="${g.id}">editar valor</button></div>`:goalMode(g)==='manual'?'<span class="muted small">sem alvo numérico</span>':''}
-        ${isPer(g)?`<span class="tag rec">${ic('sync',2.4)}${PERN[g.period]}</span>`:''}${dl!=null&&!g.done?(isPer(g)?`<span class="tag">${dl===0?'período acaba hoje':`${dl} dia${dl===1?'':'s'} no período`}</span>`:`<span class="due due-${dueLvl(gd)}">${dl<0?`venceu há ${-dl} d`:dl===0?'vence hoje':`faltam ${dl} dia${dl===1?'':'s'}`}</span>`):''}
-      </div>${goalMode(g)==='auto'?goalPartsHtml(g):`<button class="btn ghost small gadd" data-act="task-new-goal" data-g="${g.id}">${ic('plus')}Tarefa para esta meta</button>`}${isPer(g)&&(goalMode(g)==='auto'||g.target>0)?goalHist(g):''}<div style="display:none">
-      </div>
-
-    </article>`}).join('')}</div>`;
+  let h='';
   // habits
   const hs=activeHabits();const t=new Date();
-  h+=`<section class="card"><div class="card-h"><h2>Hábitos</h2><span class="muted small">Toque nos quadrados para marcar dias anteriores</span></div>`;
+  h+=`<section class="card"><div class="card-h"><div><h2>Hábitos</h2><span class="muted small">Toque nos quadrados para marcar dias anteriores</span></div><button class="btn primary" data-act="habit-new">${ic('plus')}Hábito</button></div>`;
   if(!hs.length)h+=emptyBox('habits','Nenhum hábito ativo','Hábitos marcados aqui alimentam os mapas do Resumo e o progresso das metas.',emptyBtn('habit-new','Criar hábito'));
   else{
-    const days=[...Array(14)].map((_,i)=>addD(t,i-13));
+    const nd=innerWidth<620?7:14,days=[...Array(nd)].map((_,i)=>addD(t,i-nd+1));
     h+=`<div class="hab-table"><div class="hab" style="border-top:0;padding-bottom:0"><span class="muted small">hábito</span><div class="days">${days.map(d=>`<span class="dh">${DOW[(d.getDay()+6)%7][0]}${d.getDate()}</span>`).join('')}</div><span class="muted small">sequência</span><span class="muted small">30 dias</span></div>`;
     h+=hs.map(x=>{const s=streak(x),c=consistency(x),st=hStart(x);
       return `<div class="hab" style="--hc:${hColor(x)}"><div class="name"><button data-act="habit-edit" data-id="${x.id}">${esc(x.name)}</button><div class="muted small">${esc(habFreqLabel(x))}${x.autoW?' · marca sozinho com treinos':''}${x.goalId?` · ${esc((S.goals.find(g=>g.id===x.goalId)||{}).title||'')}`:''}</div></div>
@@ -1686,11 +1664,11 @@ function vCal(){
       <span class="dots">${dots.map(c=>`<i style="--cc:${c}"></i>`).join('')}</span>
       ${p!=null?`<span class="hbar" data-tip="Hábitos feitos no dia: ${Math.round(p*100)}%"><i style="width:${p*100}%"></i></span>`:''}</button>`;
   }
-  g+=`</div><div class="cal-legend" aria-hidden="true"><span><i class="lg-hbar"><b></b></i>hábitos feitos no dia</span><span><i class="lg-plan"></i>treino planejado · riscado: não feito</span></div></div>`;
+  g+=`</div><div class="cal-legend" aria-hidden="true"><span><i class="lg-hbar"><b></b></i>hábitos feitos no dia</span></div></div>`;
   const sd=pd(UI.calSel);
-  let a=`<aside class="card agenda"><div class="card-h"><div><p class="eyebrow">${DOWF[sd.getDay()]}</p><h2>${sd.getDate()} de ${MESF[sd.getMonth()].toLowerCase()}</h2></div></div>
-    <div class="actions" style="margin-bottom:10px"><button class="btn" data-act="event-new" data-date="${UI.calSel}">${ic('plus')}Evento</button><button class="btn" data-act="task-new" data-date="${UI.calSel}">${ic('plus')}Tarefa</button><button class="btn" data-act="w-new" data-date="${UI.calSel}">${ic('plus')}Treino</button></div>`;
-  a+=agendaDay(UI.calSel,'Agenda');
+  let a=`<aside class="card agenda"><div class="card-h"><div><h2>${dayName(UI.calSel)}${Math.abs(daysBetween(today(),UI.calSel))>1?` <span class="muted">${fmtD(UI.calSel)}</span>`:''}</h2></div></div>
+    <div class="actions" style="margin-bottom:10px"><button class="btn" data-act="event-new" data-date="${UI.calSel}">${ic('plus')}Evento</button><button class="btn" data-act="task-new" data-date="${UI.calSel}">${ic('plus')}Tarefa</button></div>`;
+  a+=agendaDay(UI.calSel,'');
   const hs=activeHabits().filter(x=>hStart(x)<=UI.calSel&&(x.freq==='weekly'||isSched(x,UI.calSel)||doneOn(x.id,UI.calSel)));
   if(hs.length&&UI.calSel<=today()){a+=`<div class="group-h">Hábitos</div><div class="list">${hs.map(x=>{const d=doneOn(x.id,UI.calSel);return `<div class="row"><button class="check round" role="checkbox" aria-checked="${d}" aria-label="${esc(x.name)}" data-act="habit-toggle" data-id="${x.id}" data-k="${UI.calSel}">${CHECK}</button><div class="main">${esc(x.name)}</div></div>`}).join('')}</div>`}
   a+=(dayNotice()||`<p class="src" style="margin-top:12px">${esc(cs.t)}</p>`)+`</aside>`;
@@ -1755,13 +1733,11 @@ function vTreinos(){
   const ws=sortedW();const ww=wThisWeek();const tk=today();const mStart=tk.slice(0,8)+'01';
   const month=ws.filter(w=>w.date>=mStart);const monMin=month.reduce((s,w)=>s+wMin(w),0);const actDays=new Set(month.map(w=>w.date)).size;
   let h=vhead(`Meta: ${weekTarget()} treinos por semana`,'Treinos',
-    `<button class="btn" data-act="strava-sync" ${SV.busy?'disabled':''}>${ic('sync')}${SV.busy?'Sincronizando…':'Sincronizar Strava'}</button><button class="btn primary" data-act="w-new">${ic('plus')}Registrar treino</button>`);
+    `<button class="btn" data-act="strava-sync" ${SV.busy?'disabled':''}>${ic('sync')}${SV.busy?'Sincronizando…':'Sincronizar Strava'}</button>`);
   if(SV.err)h+=`<div class="banner err">${esc(SV.msg)}</div>`;else if(SV.msg)h+=`<p class="muted small" style="margin:-10px 0 14px">${esc(SV.msg)}</p>`;
   const kpi=(v,l,m,c)=>`<div class="kpi ${c}"><div class="v">${v}</div><div class="l">${l}</div>${m!=null?`<div class="meter"><i style="width:${clamp(m*100,0,100)}%"></i></div>`:''}</div>`;
-  h+=`<div class="kpis kpis-cor">${kpi(`${ww.length}<small> / ${weekTarget()}</small>`,'nesta semana',ww.length/weekTarget(),'k-blue')}${kpi(month.length,`sessões em ${MESF[new Date().getMonth()].toLowerCase()}`,null,'k-red')}${kpi(monMin<60?`${monMin}<small> min</small>`:`${nf(monMin/60,1)}<small> h</small>`,'de treino no mês',null,'k-lime')}${kpi(actDays,`dia${actDays===1?'':'s'} ativo${actDays===1?'':'s'} em ${MESF[new Date().getMonth()].toLowerCase()}`,null,'k-indigo')}</div>`;
-  h+=plansCard();
   h+=`<section class="card"><div class="card-h"><h2>Histórico</h2></div>`;
-  if(!ws.length)h+=emptyBox('work','Nenhum treino ainda','Registre um treino ou sincronize com o Strava.',emptyBtn('w-new','Registrar treino'));
+  if(!ws.length)h+=emptyBox('work','Nenhum treino ainda','Os treinos chegam pelo Strava.',emptyBtn('strava-sync','Sincronizar Strava'));
   else{
     let cur='';const wkOf=w=>dk(monOf(pd(w.date))),weeks=[...new Set(ws.map(wkOf))],shown=new Set(weeks.slice(0,UI.wWeeks||6));
     ws.filter(w=>shown.has(wkOf(w))).forEach(w=>{const m=dk(monOf(pd(w.date)));if(m!==cur){cur=m;const n=ws.filter(x=>dk(monOf(pd(x.date)))===m).length;h+=`<div class="group-h">Semana de ${fmtD(m)} <span class="mono">${n} treino${n>1?'s':''}</span></div>`}h+=`<div class="list">${wCard(w)}</div>`});
@@ -1774,7 +1750,7 @@ function vTreinos(){
 const CH={};
 function vStats(){
   const t=new Date();
-  let h=vhead('Últimas semanas','Resumo');
+  let h='';
   const hs=activeHabits();
   const cons=hs.map(x=>consistency(x)).filter(v=>v!=null);
   const avg=cons.length?cons.reduce((a,b)=>a+b,0)/cons.length:null;
@@ -1785,7 +1761,6 @@ function vStats(){
   const w30=S.workouts.filter(w=>w.date>=dk(addD(t,-29)));
   const best=hs.map(x=>streak(x)).reduce((m,s)=>Math.max(m,s.n),0);
   const kpi=(v,l,c)=>`<div class="kpi ${c}"><div class="v">${v}</div><div class="l">${l}</div></div>`;
-  h+=`<div class="kpis kpis-cor">${kpi(avg==null?'–':Math.round(avg*100)+'<small>%</small>','consistência média dos hábitos (30 d)','k-hab')}${kpi(best,'maior sequência ativa','k-hab')}${kpi(tdone7,`tarefas concluídas em 7 dias${rate!=null?` · ${Math.round(rate*100)}% das criadas em 30 d`:''}`,'k-tar')}${kpi(w30.length,'treinos nos últimos 30 dias','k-tre')}</div>`;
 
   // weeks labels
   const weeks=[...Array(12)].map((_,i)=>addD(monOf(t),(i-11)*7));
@@ -1812,27 +1787,11 @@ function vStats(){
   h+=`<section class="card" style="margin-bottom:16px"><div class="card-h"><h2>Hábitos · últimas <span data-heat-weeks>20</span> semanas</h2><span class="muted small">% dos hábitos diários cumpridos por dia</span></div>
     ${hs.length?`<div class="chart" data-chart="heat"></div><div class="hm-legend">menos <i style="background:var(--surface-2);border:1px solid var(--line)"></i><i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i><i style="background:var(--h5)"></i> 100%</div>`:emptyBox('stats','Sem hábitos ainda','Crie hábitos para ver o mapa de consistência.')}
   </section>`;
-  // um mapa por hábito, no mesmo estilo do mapa geral
-  if(hs.length){
-    h+=`<div class="sec-h"><h2>Frequência por hábito</h2><span class="muted small" data-hm-weeks>últimas 20 semanas</span></div><div class="grid2 hmaps">`+hs.map(x=>{
-      const st=streak(x),c=consistency(x);
-      return `<section class="card hmap" style="--hc:${hColor(x)}"><div class="card-h"><h2><i class="hm-dot"></i><button data-act="habit-edit" data-id="${x.id}">${tn(x.name)}</button></h2><span class="muted small">${esc(habFreqLabel(x))}</span></div>
-        <div class="chart" data-chart="heat" data-habit="${x.id}"></div>
-        <div class="hm-foot"><span>sequência <b>${st.n}</b> ${st.unit}</span><span><b>${c==null?'–':Math.round(c*100)+'%'}</b> em 30 dias</span><span data-hm-n></span><span class="hm-key"><i></i>feito<i class="no"></i>não feito</span></div></section>`}).join('')+`</div>`;
-  }
   h+=`<div class="grid2">`;
   h+=`<section class="card"><div class="card-h"><h2>Consistência por hábito</h2><span class="muted small">30 dias</span></div>${hs.length?hs.map(x=>{const c=consistency(x);return `<div class="hb"><span class="lb" title="${esc(x.name)}">${esc(x.name)}</span><span class="tr"><i style="width:${(c||0)*100}%;background:${hColor(x)}"></i></span><span class="val">${c==null?'–':Math.round(c*100)+'%'}</span></div>`}).join(''):'<div class="empty">Sem hábitos.</div>'}</section>`;
-  const openBy=catList().map(c=>({c,n:S.tasks.filter(x=>!x.done&&x.cat===c.id).length})).filter(x=>x.n);const mx=Math.max(1,...openBy.map(x=>x.n));
-  h+=`<section class="card"><div class="card-h"><h2>Tarefas abertas por categoria</h2></div>${openBy.length?openBy.map(x=>`<div class="hb"><span class="lb">${esc(x.c.name)}</span><span class="tr"><i style="width:${x.n/mx*100}%;background:${cv(x.c.c)}"></i></span><span class="val">${x.n}</span></div>`).join(''):'<div class="empty">Nenhuma tarefa aberta.</div>'}</section>`;
   h+=trendCard();
   h+=chartCard('tasks','Tarefas concluídas por semana');
   if(dTypes.length)h+=`<section class="card"><div class="card-h"><div><h2>Ritmo${dTypes.length>1?'':` · ${WT[UI.perfSel].n}`}</h2><div class="src" style="margin-top:2px">${perfNote}</div></div>${dTypes.length>1?`<select id="perf-sel" data-keep="no" data-change="perf-sel" aria-label="Tipo de treino">${dTypes.map(k=>`<option value="${k}" ${k===UI.perfSel?'selected':''}>${WT[k].n}</option>`).join('')}</select>`:''}</div>${perf.length>1?`<div class="chart" data-chart="pace" data-kind="line"></div>`:'<div class="empty">Registre ao menos duas sessões com distância e tempo.</div>'}</section>`;
-  const d90=dk(addD(t,-90)),kgf=v=>nf(v,v%1?1:0)+' kg';
-  const exRows=exNames.map(n=>{const p=[...exMap[n]].sort((a,b)=>a.date.localeCompare(b.date)),last=p[p.length-1],base=p.find(x=>x.date>=d90)||p[0],dif=last.top-base.top;
-    return `<button class="hb ex-r" aria-pressed="${n===UI.exSel}" data-act="ex-pick" data-v="${esc(n)}"><span class="lb">${esc(n)}<small class="muted">${p.length} sess${p.length===1?'ão':'ões'} · última ${fmtD(last.date)}</small></span>${spark(p.slice(-12).map(x=>x.top))}<span class="val"><b>${kgf(last.top)}</b>${p.length>1?`<small class="${dif>0?'up':dif<0?'down':''}">${dif===0?'igual':`${dif>0?'+':'−'}${kgf(Math.abs(dif))}`}</small>`:''}</span></button>`}).join('');
-  h+=`<section class="card" style="grid-column:1/-1"><div class="card-h"><div><h2>Progresso por exercício</h2><div class="src" style="margin-top:2px">carga máxima por sessão · variação nos últimos 90 dias${exNames.length?` · ${esc(UI.exSel)} em destaque`:''}</div></div></div>
-    ${exPts.length>1?`<div class="chart" data-chart="ex" data-kind="line"></div>`:exNames.length?'<div class="empty">Registre esse exercício em pelo menos duas sessões para ver a linha.</div>':''}
-    ${exNames.length?`<div class="ex-list">${exRows}</div>`:'<div class="empty">Registre treinos de musculação com exercícios e cargas para acompanhar a evolução.</div>'}</section>`;
   return h+`</div>`;
 }
 function chartCard(key,title,legend=false,note=''){
@@ -1951,10 +1910,9 @@ function taskModal(x,date,goalId,categoryId){
    <div class="field"><label for="f-due">Prazo / início</label><input type="date" id="f-due" value="${esc(x.startDate||x.due||'')}"></div>
    <div class="field"><label for="f-prio">Prioridade</label><select id="f-prio">${[1,2,3].map(p=>`<option value="${p}" ${+x.prio===p?'selected':''}>${PRIO[p]}</option>`).join('')}</select></div></div>
    ${formWhen()}${rangeFields('f-due',x.startDate||x.due,x.startDate?x.due:'')}
-   <details class="more-opts" ${x.dueTime||x.goalId||hasRec(x.rec)||x.notes?'open':''}><summary>Mais opções <span>horário, lembrete, meta, repetição e notas</span></summary><div class="more-body">
+   <details class="more-opts" ${x.dueTime||x.goalId||hasRec(x.rec)||x.notes?'open':''}><summary>Mais opções <span>horário, lembrete, repetição e notas</span></summary><div class="more-body">
    <div class="frow"><div class="field"><label for="f-due-time">Horário do prazo (opcional)</label><input type="time" id="f-due-time" value="${esc(x.dueTime||'')}"><span class="muted small">Sem horário: ${esc(notificationPrefs().taskTime)}.</span></div><label class="chip"><input type="checkbox" id="f-remind" ${x.reminderEnabled!==false?'checked':''}> Lembrar desta tarefa</label></div>
-   <div class="frow"><div class="field"><label for="f-goal">Faz parte da meta</label><select id="f-goal">${goalOptions(x.goalId)}</select></div>
-   <div class="field" data-needgoal><label for="f-gw">Peso na meta</label><select id="f-gw">${weightOptions(x.goalW)}</select></div></div>
+   <input type="hidden" id="f-goal" value="${esc(x.goalId||'')}"><input type="hidden" id="f-gw" value="${x.goalW||1}">
    ${recFields('tr',x.rec,{hideStart:true,label:'Repetir tarefa'})}
    <p class="muted small" style="margin:0" data-show-note>Tarefas recorrentes: ao concluir, a próxima ocorrência é criada com o novo prazo.</p>
    <div class="field"><label for="f-notes">Notas</label><textarea id="f-notes">${esc(x.notes||'')}</textarea></div></div></details>${foot('task-del',x.id)}</form>`);
@@ -1980,31 +1938,22 @@ function habitModal(x){
    <div class="field" data-hshow="weekly"><label for="f-target">Vezes por semana</label><input type="number" id="f-target" min="1" max="7" value="${x.target||3}"></div>
    </div><div data-hshow="sched">${recFields('hr',x.rec,{allowNone:false,label:'Programação',start:x.createdAt?String(x.createdAt).slice(0,10):today()})}</div><div class="frow"><div class="field"><label for="f-hcat">Categoria</label><select id="f-hcat">${catOptions(x.cat||catList()[0].id)}</select></div>
    <div class="field"><label for="f-autow">Marcar sozinho quando houver treino</label><select id="f-autow">${AUTOW.map(([v,l])=>`<option value="${v}" ${(x.autoW||'')===v?'selected':''}>${l}</option>`).join('')}</select></div></div>
-   <p class="muted small" style="margin:0">Treinos do Strava ou registrados à mão marcam o hábito no dia do treino, a partir da data de criação do hábito.</p>
+   <p class="muted small" style="margin:0">Treinos do Strava marcam o hábito no dia do treino, a partir da data de criação do hábito.</p>
    <div class="frow"><label class="chip"><input type="checkbox" id="f-remind" ${x.reminderEnabled!==false?'checked':''}> Lembrar deste hábito</label><div class="field"><label for="f-remind-time">Horário do lembrete</label><input type="time" id="f-remind-time" value="${esc(x.reminderTime||notificationPrefs().habitTime)}"></div></div>
-   <div class="frow"><div class="field"><label for="f-goal">Faz parte da meta</label><select id="f-goal">${goalOptions(x.goalId)}</select></div>
-   <div class="field" data-needgoal><label for="f-gw">Peso na meta</label><select id="f-gw">${weightOptions(x.goalW)}</select></div>
-   <div class="field" data-needgoal><label for="f-gtarget">Execuções para 100%</label><input type="number" min="1" id="f-gtarget" value="${x.goalTarget||''}" placeholder="automático"></div></div>
-   <p class="muted small" style="margin:0" data-needgoal id="f-gtarget-hint"></p>
+   <input type="hidden" id="f-goal" value="${esc(x.goalId||'')}"><input type="hidden" id="f-gw" value="${x.goalW||1}"><input type="hidden" id="f-gtarget" value="${x.goalTarget||''}">
    ${x.id?`<label class="chip" style="font-size:13px"><input type="checkbox" id="f-arch" ${x.archived?'checked':''}> Arquivado (some das listas, mantém o histórico)</label>`:''}
    ${foot('habit-del',x.id)}</form>`);
 }
 function goalModal(g){
-  g=g||{title:'',cat:catList()[0].id,deadline:'',target:'',current:0,unit:'',notes:'',done:false,period:'none'};
+  g=g||{title:'',deadline:'',target:'',current:0,unit:'',notes:'',done:false,period:'none',mode:'manual'};
+  const auto=!!g.id&&goalMode(g)==='auto';
   openModal(`<h2>${g.id?'Editar meta':'Nova meta'}</h2><form class="form" data-form="goal" data-id="${g.id||''}">
-   <div class="field"><label for="f-title">Meta</label><input type="text" id="f-title" required value="${esc(g.title)}" placeholder="Ex.: Correr 10 km abaixo de 55 min"></div>
-   <div class="frow"><div class="field"><label for="f-cat">Área</label><select id="f-cat">${catOptions(g.cat)}</select></div>
-   <div class="field"><label for="f-period">Recorrência</label><select id="f-period">${[['none','Única, com prazo'],['weekly','Renova toda semana'],['monthly','Renova todo mês'],['quarterly','Renova todo trimestre'],['yearly','Renova todo ano']].map(([v,l])=>`<option value="${v}" ${(g.period||'none')===v?'selected':''}>${l}</option>`).join('')}</select></div>
-   <div class="field" data-gshow="none"><label for="f-deadline">Prazo</label><input type="date" id="f-deadline" value="${esc(g.deadline||'')}"></div></div>
-   <p class="muted small" style="margin:0" data-gshow="per">Metas recorrentes zeram a cada período e guardam o resultado dos períodos anteriores (ex.: ler 2 livros por mês, correr 20 km por semana).</p>
-   <div class="field"><label for="f-mode">Como o progresso é medido</label><select id="f-mode"><option value="auto" ${goalMode(g)==='auto'?'selected':''}>Automático · pelas tarefas e hábitos ligados</option><option value="manual" ${goalMode(g)==='manual'?'selected':''}>Manual · valor numérico que eu atualizo</option></select></div>
-   <div data-mshow="auto" class="gm-auto">${g.id?goalPartsHtml(g):'<p class="muted small" style="margin:0">Depois de salvar, ligue tarefas e hábitos a esta meta pelo campo "Faz parte da meta" deles. Cada tarefa concluída e cada execução de hábito faz a porcentagem subir.</p>'}</div>
-   <div class="field" data-mshow="auto" data-gshow="none"><label for="f-start">Contar hábitos a partir de</label><input type="date" id="f-start" value="${esc(String(g.start||g.createdAt||today()).slice(0,10))}"></div>
-   <div class="frow" data-mshow="manual"><div class="field"><label for="f-current" id="f-current-l">Atual</label><input type="number" step="any" id="f-current" value="${gCur(g)}"></div>
-   <div class="field"><label for="f-target">Alvo (opcional)</label><input type="number" step="any" id="f-target" value="${g.target??''}"></div>
-   <div class="field"><label for="f-unit">Unidade</label><input type="text" id="f-unit" value="${esc(g.unit||'')}" placeholder="km, livros, R$…"></div></div>
-   <div class="field"><label for="f-notes">Notas</label><textarea id="f-notes">${esc(g.notes||'')}</textarea></div>
-   ${g.id?`<label class="chip" style="font-size:13px"><input type="checkbox" id="f-done" ${g.done?'checked':''}> ${isPer(g)?'Encerrar meta (para de renovar)':'Meta concluída'}</label>`:''}
+   <div class="field"><label for="f-title">Meta</label><input type="text" id="f-title" required value="${esc(g.title)}" placeholder="Ex.: Correr 200 km no ano"></div>
+   ${auto?'<p class="muted small" style="margin:0">O progresso desta meta é calculado pelos hábitos e tarefas ligados a ela.</p>':`<div class="frow"><div class="field"><label for="f-current">Atual</label><input type="number" step="any" inputmode="decimal" id="f-current" value="${g.id?gCur(g):0}"></div>
+   <div class="field"><label for="f-target">Alvo</label><input type="number" step="any" inputmode="decimal" id="f-target" value="${g.target??''}"></div>
+   <div class="field"><label for="f-unit">Unidade</label><input type="text" id="f-unit" value="${esc(g.unit||'')}" placeholder="km, livros, R$"></div></div>`}
+   ${isPer(g)?'':`<div class="field"><label for="f-deadline">Prazo (opcional)</label><input type="date" id="f-deadline" value="${esc(g.deadline||'')}"></div>`}
+   ${g.id?`<label class="chip" style="font-size:13px"><input type="checkbox" id="f-done" ${g.done?'checked':''}> Meta concluída</label>`:''}
    ${foot('goal-del',g.id)}</form>`);
 }
 function notificationPrefs(){
@@ -2024,15 +1973,15 @@ function notificationModal(){
   const time=(id,label,value)=>`<div class="field"><label for="${id}">${label}</label><input type="time" id="${id}" value="${esc(value)}" required></div>`;
   openModal(`<h2>Notificações e lembretes</h2><form class="form" data-form="notifications">
     <div class="recbox"><div id="notification-device">${notificationDevice()}</div><p class="muted small" style="margin:0">Ative em cada aparelho que deve receber os avisos. Os horários abaixo são compartilhados pela sua conta. A entrega depende da conexão e das configurações de notificações e Foco do aparelho.</p></div>
-    ${tick('n-enabled','Receber lembretes do Compasso',p.enabled)}
+    ${tick('n-enabled','Receber lembretes do Compasso',p.enabled)}<div class="lbl">Avisar sobre</div><div class="n-ticks">${tick('n-tasks','Tarefas perto do prazo',p.tasks)}${tick('n-habits','Hábitos',p.habits)}${tick('n-pending','Hábitos pendentes',p.pendingHabits)}${tick('n-events','Compromissos',p.events)}${tick('n-summary','Resumo do dia',p.summary)}</div><details class="more-opts"><summary>Horários e antecedência <span>fuso, avisos e horários</span></summary><div class="more-body">
     <div class="field"><label for="n-zone">Fuso dos lembretes</label><input id="n-zone" value="${esc(p.timeZone)}" required list="n-zones"><datalist id="n-zones"><option value="America/Sao_Paulo"><option value="America/Manaus"><option value="America/Rio_Branco"><option value="America/Noronha"><option value="Europe/Lisbon"></datalist></div>
-    <div class="lbl">Tarefas próximas do prazo</div>${tick('n-tasks','Avisar sobre tarefas',p.tasks)}
+    <div class="lbl">Tarefas</div>
     <div class="frow"><div class="field"><label for="n-task-days">Primeiro aviso: dias antes</label><input id="n-task-days" type="number" min="0" max="30" value="${(p.taskLeadMinutes[0]??1440)/1440}" step="1"></div><div class="field"><label for="n-task-minutes">Segundo aviso: minutos antes</label><input id="n-task-minutes" type="number" min="0" max="1440" value="${p.taskLeadMinutes[1]??60}"></div>${time('n-task-time','Prazo quando não houver horário',p.taskTime)}</div>
-    <div class="lbl">Hábitos</div>${tick('n-habits','Avisar no horário do hábito',p.habits)}${time('n-habit-time','Horário padrão para hábitos sem horário próprio',p.habitTime)}<p class="muted small" style="margin:0">Você pode alterar o horário de cada hábito na edição dele. Hábitos concluídos e metas semanais já atingidas não geram lembretes.</p>
-    ${tick('n-pending','Lembrar dos hábitos ainda pendentes',p.pendingHabits)}${time('n-pending-time','Lembrete dos hábitos pendentes',p.pendingHabitsTime)}
-    <div class="lbl">Agenda</div>${tick('n-events','Lembrar dos compromissos',p.events)}<div class="field"><label for="n-event-minutes">Avisar quantos minutos antes?</label><input type="number" id="n-event-minutes" min="0" max="10080" value="${p.eventLeadMinutes}"></div>
-    <div class="lbl">Resumo do dia</div>${tick('n-summary','Enviar resumo das pendências',p.summary)}${time('n-summary-time','Horário do resumo',p.summaryTime)}
-    <div class="sheet-foot"><div class="r"><button type="button" class="btn" data-act="settings">Voltar</button><button type="submit" class="btn primary">Salvar</button></div></div></form>`);
+    <div class="lbl">Hábitos</div>${time('n-habit-time','Horário padrão para hábitos sem horário próprio',p.habitTime)}<p class="muted small" style="margin:0">Você pode alterar o horário de cada hábito na edição dele. Hábitos concluídos e metas semanais já atingidas não geram lembretes.</p>
+    ${time('n-pending-time','Lembrete dos hábitos pendentes',p.pendingHabitsTime)}
+    <div class="lbl">Compromissos</div><div class="field"><label for="n-event-minutes">Avisar quantos minutos antes?</label><input type="number" id="n-event-minutes" min="0" max="10080" value="${p.eventLeadMinutes}"></div>
+    <div class="lbl">Resumo do dia</div>${time('n-summary-time','Horário do resumo',p.summaryTime)}
+    </div></details><div class="sheet-foot"><div class="r"><button type="button" class="btn" data-act="settings">Voltar</button><button type="submit" class="btn primary">Salvar</button></div></div></form>`);
   if(c&&!c.info)c.refresh().catch(()=>{});
 }
 function notificationDevice(){
@@ -2065,7 +2014,7 @@ function renderSettings(){
    ${UI.catDraft.map((c,i)=>`<div class="cat-edit"><input type="text" id="cat-n-${i}" value="${esc(c.name)}" aria-label="Nome da categoria"><select id="cat-c-${i}" aria-label="Cor">${names.map((n,j)=>`<option value="${j+1}" ${+c.c===j+1?'selected':''}>${n}</option>`).join('')}</select><button type="button" class="iconbtn" aria-label="Remover" data-act="cat-del" data-i="${i}">${ic('x')}</button></div>`).join('')}
    <div><button type="button" class="btn" data-act="cat-add">${ic('plus')}Categoria</button></div>
    <div class="frow" style="max-width:480px"><div class="field"><label for="f-wt">Meta de treinos por semana</label><input type="number" id="f-wt" min="1" max="14" value="${weekTarget()}"></div>
-   <div class="field"><label for="f-theme">Aparência</label><select id="f-theme">${THEMES.map(([v,l])=>`<option value="${v}" ${getTheme()===v?'selected':''}>${l}</option>`).join('')}</select></div></div>
+   </div>
    ${localPanel()}
    <div class="sheet-foot"><div class="r"><button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Salvar</button></div></div></form>`);
 }
@@ -2123,41 +2072,19 @@ function workoutModal(w,date,mode){
   renderWorkout();
 }
 function renderWorkout(){
-  const w=UI.draft;const exNames=[...new Set(S.workouts.flatMap(x=>(x.exercises||[]).map(e=>e.name)).filter(Boolean))];
-  const titles=[...new Set(S.workouts.filter(x=>x.type==='strength'&&x.title).map(x=>x.title))];
-  const strava=w.source==='strava';
-  const plan=UI.draftMode==='plan';const fromPlan=!plan&&w.planId?(S.plans||[]).find(p=>p.id===w.planId):null;
-  let h=`<h2>${plan?(w.id?'Editar treino do programa':'Novo treino do programa'):w.id?'Editar treino':'Registrar treino'}</h2>${fromPlan&&!w.id?`<p class="muted small" style="margin:-10px 0 14px">Sessão do programa · ${esc(fromPlan.title)} · ${fmtD(w.date)}. Cargas copiadas da última sessão.</p>`:''}<form class="form" data-form="workout">
-   ${!plan&&!w.id&&!w.planId&&!strava&&(S.plans||[]).some(p=>p.active!==false)?`<div class="field"><label for="w-tpl">Começar de</label><select id="w-tpl" data-keep="no" data-change="w-tpl"><option value="">Treino avulso</option>${(S.plans||[]).filter(p=>p.active!==false).map(p=>`<option value="${p.id}">${esc(p.title||WT[p.type].n)} · ${hasRec(p.rec)?esc(recLabel(p.rec)):'modelo'}</option>`).join('')}</select></div>`:''}
-   <div class="seg" role="group" aria-label="Tipo">${Object.entries(WT).map(([k,v])=>`<button type="button" aria-pressed="${w.type===k}" data-act="w-type" data-t="${k}">${v.n}</button>`).join('')}</div>
-   ${w.type==='other'?`<div class="field"><label for="w-sport">Esporte ou atividade</label><input type="text" id="w-sport" list="w-sports" value="${esc(sportPT(w.sport))}" placeholder="Ex.: Yoga, Futebol, Tênis"></div><datalist id="w-sports">${[...new Set(S.workouts.filter(x=>x.type==='other'&&x.sport).map(x=>sportPT(x.sport)))].map(t=>`<option value="${esc(t)}">`).join('')}</datalist>`:''}
-   <div class="frow"><div class="field"><label for="w-title">Nome</label><input type="text" id="w-title" list="w-titles" value="${esc(w.title||'')}" placeholder="${{strength:'Ex.: Push A',run:'Ex.: Rodagem leve',swim:'Ex.: Série de 1.000 m',ride:'Ex.: Pedal de domingo',walk:'Ex.: Caminhada no parque'}[w.type]||'Ex.: Treino livre'}"></div>
-   ${plan?'':`<div class="field"><label for="w-date">Data</label><input type="date" id="w-date" value="${esc(w.date)}"></div>`}
-   <div class="field"><label for="w-dur">Duração (min)</label><input type="number" id="w-dur" min="0" value="${w.durMin||''}"></div></div>
-   ${plan?'':rangeFields('w-date',w.date,w.endDate)}
-   <datalist id="w-titles">${titles.map(t=>`<option value="${esc(t)}">`).join('')}</datalist><datalist id="ex-names">${exNames.map(t=>`<option value="${esc(t)}">`).join('')}</datalist>`;
-  if(strava)h+=`<div class="banner">Importado do Strava${w.calories?` · ${w.calories} kcal`:''}${w.effort?` · esforço relativo ${w.effort}`:''}${w.avgHr?` · FC média ${w.avgHr} bpm`:''}${w.elev?` · +${w.elev} m de subida`:''}. Você pode adicionar exercícios e notas.</div>`;
-  if(WT[w.type].k==='dist'){
-    h+=`<div class="frow"><div class="field"><label for="w-km">Distância${plan?' alvo':''} (${w.type==='swim'?'m':'km'})</label><input type="number" step="${w.type==='swim'?'1':'0.01'}" id="w-km" value="${w.km?(w.type==='swim'?Math.round(w.km*1000):w.km):''}"></div>
-     <div class="field"><label for="w-time">Tempo${plan?' alvo':''} (mm:ss ou h:mm:ss)</label><input type="text" id="w-time" value="${w.timeSec?secFmt(w.timeSec):''}" placeholder="50:14"></div></div>`;
-  }
-  if(w.type==='strength'){
-    h+=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span class="lbl">Exercícios</span>${plan?'':'<button type="button" class="btn ghost small" data-act="w-copy">Copiar último treino com este nome</button>'}</div>`;
-    h+=w.exercises.map((e,i)=>`<div class="ex"><div class="ex-h"><input type="text" list="ex-names" data-ex="${i}" data-k="name" value="${esc(e.name)}" placeholder="Exercício" aria-label="Exercício ${i+1}"><button type="button" class="iconbtn" aria-label="Remover exercício" data-act="ex-del" data-i="${i}">${ic('x')}</button></div>${lastEx(e.name,w.id)}
-      ${(e.sets||[]).map((s,j)=>`<div class="set"><span class="i">${j+1}</span><input type="number" min="0" data-ex="${i}" data-set="${j}" data-k="reps" value="${esc(s.reps)}" placeholder="reps" aria-label="Repetições"><input type="number" step="0.5" min="0" data-ex="${i}" data-set="${j}" data-k="kg" value="${esc(s.kg)}" placeholder="kg" aria-label="Carga em kg"><button type="button" class="iconbtn" aria-label="Remover série" data-act="set-del" data-i="${i}" data-j="${j}">${ic('x')}</button></div>`).join('')}
-      <div><button type="button" class="btn ghost small" data-act="set-add" data-i="${i}">${ic('plus')}Série</button></div></div>`).join('');
-    h+=`<div><button type="button" class="btn" data-act="ex-add">${ic('plus')}Exercício</button></div>`;
-  }
-  if(plan)h+=`<div class="lbl" style="margin-top:4px">Quando fazer</div>${recFields('wr',w.rec,{noneLabel:'Sem dia fixo · usar como modelo',label:'Frequência',start:today()})}<label class="chip" style="font-size:13px"><input type="checkbox" id="w-active" ${w.active!==false?'checked':''}> Ativo (desmarque para pausar sem apagar)</label>`;
-  else if(!w.id&&!w.planId&&!strava)h+=recFields('wr',w.rec,{label:'Repetir este treino',startLabel:'A partir de',start:w.date});
-  h+=`<div class="field"><label for="w-notes">Notas</label><textarea id="w-notes">${esc(w.notes||'')}</textarea></div>${foot(plan?'plan-del':'w-del',w.id)}</form>`;
-  const open=!$('#modal').hidden;
-  if(open){const sc=$('#sheet').scrollTop;$('#sheet').innerHTML=h;$('#sheet').scrollTop=sc;syncAllRec()}else openModal(h);
+  const w=UI.draft,t=WT[w.type]||WT.other,d=pd(w.date);
+  const h=`<h2>${esc(w.title||t.n)}</h2><p class="muted small" style="margin:-8px 0 12px">${w.type==='other'&&w.sport?esc(sportPT(w.sport)):t.n} · ${dayCap(DOWF[d.getDay()])}, ${fmtD(w.date)}${w.source==='strava'?' · Strava':''}</p>
+   <div class="w-facts">${wSummary(w)}</div>
+   <form class="form" data-form="workout">
+   <div class="field"><label for="w-title">Nome</label><input type="text" id="w-title" value="${esc(w.title||'')}" placeholder="${esc(t.n)}"></div>
+   <div class="field"><label for="w-notes">Notas</label><textarea id="w-notes" placeholder="Como foi o treino?">${esc(w.notes||'')}</textarea></div>
+   ${foot('w-del',w.id)}</form>`;
+  if(!$('#modal').hidden){$('#sheet').innerHTML=h}else openModal(h);
 }
 function readDraft(){
   const w=UI.draft;if(!w)return;
-  w.endDate=rangeEnd('w-date');w.title=fv('w-title');if(document.getElementById('w-date'))w.date=fv('w-date')||today();
-  if(document.getElementById('wr-freq'))w.rec=readRec('wr');const ac=document.getElementById('w-active');if(ac)w.active=ac.checked;w.durMin=+fv('w-dur')||0;w.notes=fv('w-notes');
+  if(document.getElementById('w-date'))w.endDate=rangeEnd('w-date');w.title=fv('w-title');if(document.getElementById('w-date'))w.date=fv('w-date')||today();
+  if(document.getElementById('wr-freq'))w.rec=readRec('wr');const ac=document.getElementById('w-active');if(ac)w.active=ac.checked;if(document.getElementById('w-dur'))w.durMin=+fv('w-dur')||0;w.notes=fv('w-notes');
   if(document.getElementById('w-km')){w.km=(+fv('w-km')||0)/(w.type==='swim'?1000:1);w.timeSec=parseTime(fv('w-time'))}const sp=document.getElementById('w-sport');if(sp)w.sport=sp.value.trim();
   $('#sheet').querySelectorAll('[data-ex]').forEach(el=>{const i=+el.dataset.ex,k=el.dataset.k;const e=w.exercises[i];if(!e)return;
     if(el.dataset.set!=null){const s=e.sets[+el.dataset.set];if(s)s[k]=el.value}else e[k]=el.value});
@@ -2280,7 +2207,7 @@ function switchView(v,opt={}){
 window.addEventListener('popstate',()=>{
   if(skipPop){skipPop--;return}
   if(!$('#modal').hidden){closeModal(true);return}
-  const h=(location.hash||'').slice(1)||'hoje';if(VIEWS.some(x=>x[0]===h)&&h!==UI.view)switchView(h,{back:true});
+  const h=(location.hash||'').slice(1)||'hoje';if((VIEWS.some(x=>x[0]===h)||VIEW_ALIAS[h])&&h!==UI.view)switchView(h,{back:true});
 });
 document.addEventListener('keydown',e=>{if(e.key==='Tab'||e.key==='Enter'||e.key===' ')kbd=true},true);
 document.addEventListener('pointerdown',()=>{kbd=false},true);
@@ -2376,8 +2303,8 @@ document.addEventListener('submit',async e=>{
     }catch(e){button.disabled=false;dbFail(e);return}
   }
   if(k==='goal'){const old=S.goals.find(x=>x.id===id)||{};const tg=fv('f-target');
-    const per=fv('f-period')||'none';const cv0=+fv('f-current')||0;const prog={...(old.prog||{})};if(per!=='none')prog[perRange(per).key]=cv0;
-    put('goals',id,{mode:fv('f-mode')||'auto',start:fv('f-start')||String(old.start||old.createdAt||now).slice(0,10),title:fv('f-title'),cat:fv('f-cat'),period:per,prog,deadline:per==='none'?fv('f-deadline'):'',current:per==='none'?cv0:(+old.current||0),target:tg===''?null:+tg,unit:fv('f-unit'),notes:fv('f-notes'),done:!!(document.getElementById('f-done')||{}).checked,createdAt:old.createdAt||now})}
+    const per=fv('f-period')||old.period||'none';const cv0=document.getElementById('f-current')?(+fv('f-current')||0):(old.id?gCur(old):0);const prog={...(old.prog||{})};if(per!=='none')prog[perRange(per).key]=cv0;
+    put('goals',id,{mode:fv('f-mode')||(old.id?goalMode(old):'manual'),start:fv('f-start')||String(old.start||old.createdAt||now).slice(0,10),title:fv('f-title'),cat:fv('f-cat')||old.cat||catList()[0].id,period:per,prog,deadline:per==='none'?fv('f-deadline'):'',current:per==='none'?cv0:(+old.current||0),target:tg===''?(document.getElementById('f-target')?null:(old.target??null)):+tg,unit:document.getElementById('f-unit')?fv('f-unit'):(old.unit||''),notes:document.getElementById('f-notes')?fv('f-notes'):(old.notes||''),done:!!(document.getElementById('f-done')||{}).checked,createdAt:old.createdAt||now})}
   if(k==='settings'){applyTheme(fv('f-theme')||getTheme());const sk=document.getElementById('f-skey');if(sk&&sk.value.trim()&&window.CompassoLocal)window.CompassoLocal.strava.setKey(sk.value);readCatDraft();saveConn(UI.connDraft);putMeta('categories',{items:UI.catDraft.filter(c=>c.name)});putMeta('settings',{...S.settings,workoutTarget:clamp(+fv('f-wt')||4,1,14)})}
   if(k==='workout'){readDraft();const w=UI.draft;
     const exs=w.type==='strength'?w.exercises.filter(e=>e.name.trim()).map(e=>({name:e.name.trim(),sets:(e.sets||[]).filter(s=>s.reps!==''||s.kg!=='').map(s=>({reps:s.reps===''?'':+s.reps,kg:s.kg===''?'':+s.kg}))})):[];
@@ -2423,9 +2350,34 @@ function hideToast(){
   t.animate([{opacity:1,transform:'translateX(-50%)'},{opacity:0,transform:'translate(-50%,10px)'}],{duration:180,easing:EZ_IN,fill:'forwards'}).finished.then(end,end);
 }
 
+/* ============ redesenho: Agenda e Progresso ============ */
+function subSeg(key,opts){const cur=UI[key]||opts[0][0];return `<div class="subseg seg" role="group" aria-label="Seção">${opts.map(([v,l])=>`<button aria-pressed="${cur===v}" data-act="sub" data-k="${key}" data-v="${v}">${l}</button>`).join('')}</div>`}
+// o título de cada seção vira subtítulo da aba (um só h1 por tela)
+const demote=h=>h.replace('<header class="vh">','<header class="vh vh-in">').replace('<h1>','<h2>').replace('</h1>','</h2>');
+function vAgenda(){const s=UI.agSub||'cal',cur=s==='tarefas'?'tarefas':(UI.calMode||'month'),dayMode=s!=='tarefas'&&UI.calMode==='day';
+  const seg=`<div class="subseg seg" role="group" aria-label="Visualização da agenda">${[['day','Dia'],['week','Semana'],['month','Mês'],['tarefas','Tarefas']].map(([v,l])=>`<button aria-pressed="${cur===v}" data-act="ag-mode" data-v="${v}">${l}</button>`).join('')}</div>`;
+  return vhead('','Agenda')+seg+(s==='tarefas'?vTarefas().replace(/<header class="vh">[\s\S]*?<\/header>/,''):(x=>dayMode?x.replace(/<header class="vh vh-in">[\s\S]*?<\/header>/,''):x)(demote(vCal()).replace(/<div class="filters"><div class="seg" role="group" aria-label="Visualização da agenda">[\s\S]*?<\/div><\/div>/,'')))}
+A['ag-mode']=d=>{if(d.v==='tarefas'){UI.agSub='tarefas';quietRender();window.scrollTo(0,0);return}
+  const was=UI.agSub;UI.agSub='cal';if((UI.calMode||'month')===d.v){if(was==='tarefas'){quietRender();window.scrollTo(0,0)}return}A['cal-mode']({mode:d.v})};
+function vProgresso(){const s=UI.prSub||'resumo';
+  return vhead('','Progresso')+subSeg('prSub',[['resumo','Resumo'],['habitos','Hábitos'],['treinos','Treinos']])+(s==='habitos'?demote(vHabitos()):s==='treinos'?demote(vTreinos()):goalsPanel()+vStats())}
+A.sub=d=>{UI[d.k]=d.v;quietRender();window.scrollTo(0,0)};
+A['add-menu']=()=>{const it=(act,icon,t,sub,date)=>`<button type="button" class="add-it" data-act="${act}"${date?` data-date="${UI.calSel}"`:''}><span class="add-ic">${ic(icon,1.5)}</span><b>${t}</b><small>${sub}</small></button>`;
+  openModal(`<div class="add-h"><h2>Adicionar</h2><button type="button" class="add-x" data-act="close" aria-label="Fechar">${ic('x',1.6)}</button></div><div class="add-grid">
+  ${it('task-new','tasks','Tarefa','Algo para fazer',1)}${it('habit-new','habits','Hábito','Uma rotina')}${it('event-new','cal','Compromisso','Um horário',1)}${it('goal-new','flag','Meta','Um alvo')}</div>`)};
+A['bf-go']=d=>{
+  if(d.t==='__treinos')return switchView('treinos');
+  const go=()=>{const h=[...document.querySelectorAll('.dp .dp-sec h3')].find(x=>x.textContent.trim().startsWith(d.t));if(!h)return;
+    const top=h.getBoundingClientRect().top+scrollY-document.querySelector('.side').getBoundingClientRect().height-12;
+    scrollTo({top,behavior:motionOK()?'smooth':'auto'})};
+  if(UI.calSel!==today()){UI.calSel=today();quietRender();requestAnimationFrame(go)}else go();
+};
+// endereços antigos levam à seção nova
+const VIEW_ALIAS={habitos:['stats','prSub','habitos'],treinos:['stats','prSub','treinos'],tarefas:['calendario','agSub','tarefas']};
+
 /* ============ tema ============ */
 const THEMES=[['light','Claro'],['dark','Escuro'],['auto','Automático (segue o Mac)']];
-function getTheme(){try{return localStorage.getItem('compasso:theme')||'light'}catch{return 'light'}}
+function getTheme(){return 'auto'}
 const isDark=()=>{const t=getTheme();return t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches)};
 const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 const MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>';
@@ -2443,13 +2395,125 @@ function applyTheme(t){
 <script src="compasso-ux.js"></script>
 <script src="compasso-motion.js"></script>
 <script src="compasso-interactions.js"></script><script src="date-range-bands.js"></script><link rel="stylesheet" href="date-range-bands.css">
+<style>
+/* Redesenho · bateria 1: hierarquia e acessibilidade */
+.theme-t{display:none!important}
+[data-area="hoje"] .dp-id h2{display:none}
+.subseg{display:flex;width:100%;max-width:440px;margin:-6px 0 20px}
+.subseg button{flex:1;min-height:36px;font-size:15px}
+.vh.vh-in{margin-top:4px}
+[data-area="hoje"] .vh{flex-wrap:nowrap;align-items:flex-start}
+[data-area="hoje"] .vh-t{min-width:0}
+.vh.vh-in h2{font-size:22px;line-height:1.2;letter-spacing:-.02em}
+.add-btn{width:44px;height:44px}
+.add-btn svg{width:22px;height:22px}
+.add-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.add-h h2{margin:0}
+.add-x{display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink);cursor:pointer;transition:transform var(--m-fast) var(--ez)}
+.add-x svg{width:18px;height:18px}
+.add-x:active{transform:scale(.92)}
+.add-grid{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:10px;margin-bottom:6px}
+.add-it{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:118px;padding:16px;border:0;border-radius:24px;background:var(--fill);color:var(--ink);text-align:left;font:inherit;cursor:pointer;transition:transform var(--m-fast) var(--ez),background-color var(--m-base) var(--ez)}
+.add-it:active{transform:scale(.97)}
+.add-it:focus-visible,.add-x:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.add-ic{display:grid;place-items:center;width:40px;height:40px;margin-bottom:auto;border-radius:50%;background:var(--surface)}
+.add-ic svg{width:22px;height:22px}
+.add-it b{margin-top:14px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.add-it small{font-size:13px;color:var(--ink-3)}
+.sheet{position:relative}
+.sheet>h2:first-child{padding-right:52px;font-size:28px;letter-spacing:-.03em;margin-bottom:20px}
+.sheet>.add-x.sheet-x{position:absolute;top:22px;right:20px;z-index:2}
+.sheet .form{gap:16px}
+.sheet .field>label,.sheet .lbl{font-size:13px;font-weight:600;color:var(--ink-3);letter-spacing:.01em}
+.sheet input[type=text],.sheet input[type=password],.sheet input[type=number],.sheet input[type=date],.sheet input[type=time],.sheet input[type=email],.sheet select,.sheet textarea{min-height:50px;padding:13px 16px;border-radius:16px;background:var(--fill);border:0}
+.sheet textarea{min-height:96px}
+.sheet .more-opts{border-top:0;padding:14px 16px;border-radius:18px;background:var(--fill)}
+.sheet .more-opts .more-body{margin-top:16px}
+.sheet .more-opts summary{flex-wrap:wrap;row-gap:2px}
+.sheet .more-opts summary span{flex-basis:100%;padding-left:15px;font-weight:500}
+.sheet .more-opts input[type=text],.sheet .more-opts input[type=number],.sheet .more-opts input[type=date],.sheet .more-opts input[type=time],.sheet .more-opts select,.sheet .more-opts textarea{background:var(--surface)}
+.sheet-foot{margin-top:24px}
+.sheet-foot [data-act="close"]{display:none}
+.sheet-foot .r{flex:1;justify-content:flex-end}
+.sheet-foot .btn.primary{flex:1;max-width:100%;min-height:52px;border-radius:26px;font-size:17px;justify-content:center}
+.sheet-foot .btn.danger{min-height:52px;border-radius:26px;padding-inline:20px}
+/* texto mínimo de 11 pt */
+#nav button span,.dp-dow,.days .dh,.wk-date span{font-size:11px}
+/* toques de pelo menos 28 pt (o padrão do iPhone é 44) */
+.check{width:28px;height:28px}
+button.t,.hl-t,.hab .name>button{padding-block:3px}
+@media (max-width:900px){.dp-strip .iconbtn{width:28px}}
+@media (max-width:619px){.days{grid-template-columns:repeat(7,1fr);gap:6px}.dcell{width:100%;max-width:40px;height:auto;aspect-ratio:1;justify-self:center}}
+/* links em tinta, sublinhados: o azul da paleta não tem contraste para texto pequeno */
+details.tbl summary{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+/* bateria 2: texto de lista no padrão do iPhone; campos com 17 pt não disparam o zoom do Safari */
+.row .t,.hl-t{font-size:17px}
+.dp-sum{font-size:15px}
+@media (max-width:900px){input,select,textarea{font-size:17px}}
+.subseg button{padding-inline:6px}
+.w-facts{margin:0 0 16px;padding:14px 16px;border-radius:14px;background:var(--fill)}
+.n-ticks{display:flex;flex-wrap:wrap;gap:8px}
+.task-list-title{overflow-wrap:break-word}
+/* bateria 3: um + universal; nenhum outro botão de adicionar nas telas */
+main [data-act="event-new"],main [data-act="task-new"],main [data-act="habit-new"],main [data-act="goal-new"],main [data-act="category-new"],main [data-act="qa-cat"],main [data-act="task-new-goal"],main form.qa,main [data-act="day-agenda"],main .add-btn{display:none!important}
+[data-area="hoje"] .dp-sum{display:none}
+[data-area="hoje"] .dp-head{min-height:0;margin:0}
+[data-area="hoje"] .dp-head:not(:has(button:not([data-act="day-agenda"]))){display:none}
+/* Início: título grande, data em número, frase de resumo */
+.home-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap;margin-bottom:10px}
+.home-h h1{display:flex;align-items:center;gap:10px;font-size:48px;line-height:1;letter-spacing:-.04em;min-width:0}
+.home-dot{width:12px;height:12px;flex:none;border-radius:50%;background:var(--due-red);transform:translateY(4px)}
+.home-dt{margin:0;text-align:right;font-family:var(--f-num);font-size:17px;line-height:1.2;color:var(--ink-3);white-space:nowrap}
+.home-dt b{display:block;font-weight:600;color:var(--ink-2)}
+.brief{margin:14px 0 20px}
+.bf-hi{margin:0 0 6px;font-size:17px;font-weight:600;color:var(--ink-2)}
+.bf-say{margin:0;font-family:var(--f-display);font-size:27px;line-height:1.34;font-weight:600;letter-spacing:-.02em;color:var(--ink-3);text-wrap:pretty}
+.bf-n{display:inline;border:0;background:none;padding:0;margin:0;font:inherit;letter-spacing:inherit;color:var(--ink);cursor:pointer;border-radius:8px;transition:transform var(--m-fast) var(--ez),opacity var(--m-fast) var(--ez)}
+span.bf-n{cursor:default}
+.bf-n svg{display:inline-block;width:.9em;height:.9em;margin-right:.2em;vertical-align:-.1em;color:var(--bf,var(--ink))}
+button.bf-n:active{transform:scale(.96);opacity:.7}
+.bf-n:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.bf-next{display:block;margin-top:10px;font-size:17px;font-weight:500;letter-spacing:-.01em}
+/* painéis com o mesmo desenho arredondado */
+.card,.task-list-card{border-radius:24px}
+/* + universal */
+.fab{display:inline-grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:var(--ink);color:var(--bg);cursor:pointer;flex:none;transition:transform var(--m-fast) var(--ez),box-shadow var(--m-base) var(--ez)}
+.fab svg{width:20px;height:20px}
+.fab:active{transform:scale(.92)}
+.fab:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+@media (max-width:900px){
+  /* barra flutuante: vidro só na camada de navegação */
+  .side .nav{left:16px!important;right:88px!important;bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;height:62px;padding:6px!important;border-radius:31px!important;border:.5px solid color-mix(in srgb,var(--ink) 9%,transparent)!important;background:color-mix(in srgb,var(--surface) 70%,transparent)!important;-webkit-backdrop-filter:saturate(1.4) blur(26px)!important;backdrop-filter:saturate(1.4) blur(26px)!important;box-shadow:0 10px 34px rgba(0,0,0,.14),0 1px 2px rgba(0,0,0,.06)!important;display:flex;gap:2px}
+  .nav button{border-radius:25px!important;padding:5px 2px!important;gap:3px;font-size:11px!important;color:var(--ink-3)!important}
+  .nav button[aria-current="page"]{color:var(--ink)!important;font-weight:600!important}
+  .nav button svg{width:24px;height:24px}
+  .nav-ind{display:block!important;top:6px!important;bottom:6px!important;border-radius:25px!important;background:color-mix(in srgb,var(--ink) 8%,transparent)!important}
+  .nav.compasso-nav-motion.has-ind button>span{background-image:none!important;-webkit-text-fill-color:currentColor!important}
+  .fab{position:fixed;right:16px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:46;width:62px;height:62px;box-shadow:0 10px 30px rgba(0,0,0,.24),0 1px 2px rgba(0,0,0,.08)}
+  .fab svg{width:26px;height:26px}
+  main{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))!important}
+  /* painéis que sobem de baixo também flutuam */
+  .sheet{width:calc(100% - 16px)!important;margin:0 8px calc(8px + env(safe-area-inset-bottom,0px))!important;border-radius:32px!important;padding-bottom:22px!important}
+}
+@media (prefers-reduced-transparency:reduce){.side .nav{background:var(--surface)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+/* números e rótulos em tinta: a cor fica no ponto, na barra e no gráfico */
+.kpi .v,.kpi .v small{color:var(--ink)!important}
+</style>
+<script>
+// depois de compasso-interactions.js, que substitui a navegação: endereços antigos levam à seção nova
+{const sheet=document.getElementById('sheet'),addX=()=>{if(sheet.querySelector(':scope>.add-x, .add-h'))return;if(!sheet.querySelector(':scope>h2'))return;
+ const b=document.createElement('button');b.type='button';b.className='add-x sheet-x';b.dataset.act='close';b.setAttribute('aria-label','Fechar');b.innerHTML=ic('x',1.6);sheet.prepend(b)};
+ new MutationObserver(addX).observe(sheet,{childList:true});}
+{const svBase=switchView;
+ switchView=(v,opt={})=>{const a=VIEW_ALIAS[v];if(a){UI[a[1]]=a[2];if(a[0]===UI.view){quietRender();window.scrollTo(0,0);return}v=a[0]}return svBase(v,opt)};}
+</script>
 <script src="compasso-day.js"></script><link rel="stylesheet" href="compasso-day.css">
 <script src="compasso-tasks.js"></script><link rel="stylesheet" href="compasso-tasks.css">
 <script>
 /* ============ boot ============ */
 applyTheme(getTheme());
 window.addEventListener('compasso:status',()=>schedule());
-{const h=(location.hash||'').slice(1);if(VIEWS.some(v=>v[0]===h))UI.view=h}
+{const h=(location.hash||'').slice(1),a=VIEW_ALIAS[h];if(a){UI.view=a[0];UI[a[1]]=a[2]}else if(VIEWS.some(v=>v[0]===h))UI.view=h}
 render();
 (async()=>{
   const C=window.claude;

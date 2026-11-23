@@ -76,6 +76,7 @@ function dayPlanner(k,opt={}){
  const next=D.isToday?dayNext(D.items):null;
  const parts=[D.items.length?dayCount(D.items.length,'compromisso','compromissos'):'',pending?`${dayCount(pending,'tarefa','tarefas')}${D.late.length?`, <em>${D.late.length} ${D.late.length===1?'atrasada':'atrasadas'}</em>`:''}`:'',hLeft?dayCount(hLeft,k>tk?'hábito previsto':'hábito a marcar',k>tk?'hábitos previstos':'hábitos a marcar'):''].filter(Boolean);
  const allDone=!pending&&!hLeft&&(D.done.length||hDone);
+ if(D.isToday)parts.push(`${dayCount(wThisWeek().length,'treino','treinos')} de ${weekTarget()} na semana`);
  const summary=allDone&&k<=tk?'Tudo feito neste dia.':parts.length?parts.join(' · '):'Dia livre.';
  const timed=D.items.filter(x=>dayMin(x.tm)!=null),now=dayNow();
  const firstFuture=D.isToday&&timed.length?D.items.findIndex(x=>{const m=dayMin(x.tm);return m!=null&&m>now}):-1;
