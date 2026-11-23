@@ -15,7 +15,7 @@ vHabitos=()=>{
  if(metas)metas.id='compasso-goals';if(habitos)habitos.id='compasso-habits';
  const links=document.createElement('div');links.className='filters';
  links.innerHTML='<button class="btn" data-act="compasso-section" data-section="compasso-habits">Ver hábitos</button><button class="btn" data-act="compasso-section" data-section="compasso-goals">Ver metas</button>';
- header.after(links);return t.innerHTML;
+ return t.innerHTML;
 };
 A['compasso-section']=d=>{
  const section=document.getElementById(d.section);if(!section)return;
@@ -34,7 +34,7 @@ plansCard=()=>{
 const compassoStatsOriginal=vStats;
 vStats=()=>{
  const t=compassoTemplate(compassoStatsOriginal()),root=t.content,kpis=root.querySelector('.kpis');
- const labels=kpis.querySelectorAll('.l');labels[0].textContent='consistência média dos hábitos · últimos 30 dias';labels[2].textContent='tarefas concluídas · últimos 7 dias';labels[3].textContent='treinos · últimos 30 dias';
+ if(kpis){const labels=kpis.querySelectorAll('.l');labels[0].textContent='consistência média dos hábitos · últimos 30 dias';labels[2].textContent='tarefas concluídas · últimos 7 dias';labels[3].textContent='treinos · últimos 30 dias';}
  const card=root.querySelector('[data-heat-weeks]')?.closest('section');
  if(card){const controls=document.createElement('div');controls.className='card-h';controls.innerHTML=`<div class="seg" role="group" aria-label="Período dos mapas de hábitos"><button data-act="compasso-period" data-weeks="8" aria-pressed="${compassoMapWeeks===8}">8 semanas</button><button data-act="compasso-period" data-weeks="53" aria-pressed="${compassoMapWeeks===53}">Longo prazo</button></div>`;card.querySelector('.card-h').after(controls);}
  return t.innerHTML;
